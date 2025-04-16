@@ -32,6 +32,17 @@ internal void   thread_wait_for_join_any(Thread** threads, u32 count);
 
 ///////////////////////
 //~ File handling
+
+typedef enum {
+  FileFlag_None       = 0,
+  FileFlag_WhiteList  = 1 << 0,
+  FileFlag_CFiles     = 1 << 2,
+  FileFlag_HFiles     = 1 << 3,
+  FileFlag_Dirs       = 1 << 4,
+  FileFlag_DotFiles   = 1 << 5,
+  FileFlag_DotDirs    = 1 << 6,
+} FileFlags;
+
 typedef struct File_Data {
   String8 path;
   String8 data;
@@ -39,7 +50,7 @@ typedef struct File_Data {
 
 typedef struct File_Node {
   struct File_Node* next;
-  String8 value;
+  File_Data value;
 } File_Node;
 
 typedef struct File_List {
@@ -49,13 +60,16 @@ typedef struct File_List {
   u64 total_size;
 } File_List;
 
+internal void      file_list_push(Arena* arena, File_List* list, File_Data file);
+
 internal b32       file_create(String8 file_path);
 internal b32       file_exists(String8 file_path);
 internal u32       file_write(String8 file_path, u8* data, u64 data_size);
 internal u32       file_size(String8 file_path);
 internal File_Data file_load(Arena* arena, String8 file_path);
+internal b32       file_has_extension(String8 filename, String8 ext);
 internal u64       file_get_last_modified_time(String8 file_path);
-internal File_List file_get_all_files_in_path_recursively(String8 path);
+internal File_List file_get_all_files_in_path_recursively(Arena* arena, String8 path, u32 flags);
 
 internal b32 path_is_directory(String8 path);
 

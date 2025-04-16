@@ -1,4 +1,4 @@
 build/*
 .git/*
-project_check.rdbg
-project_check.10x
+project_checker.rdbg
+project_checker.10x

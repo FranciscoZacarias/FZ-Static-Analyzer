@@ -25,18 +25,18 @@ internal b32 string8_equal(String8 a, String8 b) {
   return 1;
 }
 
-internal String_List string8_split(Arena* arena, String8 str, String8 split_char8acter) {
+internal String_List string8_split(Arena* arena, String8 str, String8 split_character) {
   String_List result = { 0 };
   
-  if (split_char8acter.size != 1) {
-    ERROR_MESSAGE_AND_EXIT("string8_split expects only one char8acter in split_char8acter. It got %s of size %llu\n", split_char8acter.str, split_char8acter.size);
+  if (split_character.size != 1) {
+    ERROR_MESSAGE_AND_EXIT("string8_split expects only one char8acter in split_character. It got %s of size %llu\n", split_character.str, split_character.size);
   }
   
   char8* cursor = str.str;
   char8* end    = str.str + str.size;
   for(; cursor < end; cursor++) {
     char8 byte  = *cursor;
-    if (byte == split_char8acter.str[0]) {
+    if (byte == split_character.str[0]) {
       string8_list_push(arena, &result, string8_range(str.str, cursor));
       string8_list_push(arena, &result, string8_range(cursor, end));
       break;
@@ -44,6 +44,31 @@ internal String_List string8_split(Arena* arena, String8 str, String8 split_char
   }
   
   return result;
+}
+
+internal String8 string8_list_pop(String_List* list) {
+  String8 result = {0};
+  if (list->node_count < 1)  return result;
+  
+  String_Node* last_node = list->last;
+  result            = last_node->value;
+  list->total_size -= last_node->value.size;
+
+  if (list->node_count == 1) {
+    list->first = 0;
+    list->last = 0;
+    list->node_count = 0;
+  } else {
+    String_Node* current = list->first;
+    while (current->next != last_node) {
+      current = current->next;
+    }
+    current->next = 0;
+    list->last = current;
+    list->node_count -= 1;
+  }
+
+return result;
 }
 
 internal void string8_list_push(Arena* arena, String_List* list, String8 str) {

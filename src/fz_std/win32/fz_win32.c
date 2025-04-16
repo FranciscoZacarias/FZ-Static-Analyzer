@@ -72,47 +72,104 @@ internal u64 file_get_last_modified_time(String8 file_path) {
   return result;
 }
 
-internal File_List file_get_all_files_in_path_recursively(String8 path) {
+internal b32 file_has_extension(String8 filename, String8 ext) {
+  if (filename.size < ext.size + 1)  return false;
+  if (filename.str[filename.size - ext.size - 1] != '.')  return false;
+  for (u64 i = 0; i < ext.size; i++) {
+    if (tolower(filename.str[filename.size - ext.size + i]) != tolower(ext.str[i])) {
+      return false;
+    }
+  }
+  return true;
+}
+
+internal File_List file_get_all_files_in_path_recursively(Arena* arena, String8 path, u32 flags) {
   File_List result = {0};
   Arena_Temp scratch = scratch_begin(0, 0);
 
   if (!path_is_directory(path)) {
-    scratch_end(&scratch);
-    return result;
-  }
-
-  String16 path16 = string16_from_string8(scratch.arena, path);
-  if (path16.size == 0) {
-    scratch_end(&scratch);
-    return result;
-  }
-
-  String16 directory_path = {path16.size + 2, ArenaPushNoZero(scratch.arena, wchar_t, path16.size + 3)};
-  memcpy(directory_path.str, path16.str, path16.size * sizeof(wchar_t));
-  directory_path.str[path16.size] = L'\\';
-  directory_path.str[path16.size + 1] = L'*';
-  directory_path.str[path16.size + 2] = L'\0';
-  
-  WIN32_FIND_DATAW find_data;
-  HANDLE find_handle = FindFirstFileW(directory_path.str, &find_data);
-  if (find_handle == INVALID_HANDLE_VALUE) {
     arena_temp_end(&scratch);
+    printf("Path '%s' is not a directory.\n", path.str);
     return result;
   }
 
-  do {
-    if (wcscmp(find_data.cFileName, L".") == 0 || wcscmp(find_data.cFileName, L"..") == 0) {
-      continue;
-    }
+  String_List dir_queue = {0};
+  string8_list_push(scratch.arena, &dir_queue, path);
 
-    // TODO(fz): Finish
+  while (dir_queue.node_count > 0) {
+    String8 current_dir    = string8_list_pop(&dir_queue);
+    String16 current_dir16 = string16_from_string8(scratch.arena, current_dir);
+    if (current_dir16.size == 0) continue;
 
-  } while (FindNextFileW(find_handle, &find_data));
+    String16 search_path = {current_dir16.size + 2, ArenaPushNoZero(scratch.arena, wchar_t, current_dir16.size + 3)};
+    memcpy(search_path.str, current_dir16.str, current_dir16.size * sizeof(wchar_t));
+    search_path.str[current_dir16.size] = L'\\';
+    search_path.str[current_dir16.size + 1] = L'*';
+    search_path.str[current_dir16.size + 2] = L'\0';
+
+    WIN32_FIND_DATAW find_data;
+    HANDLE find_handle = FindFirstFileW(search_path.str, &find_data);
+    if (find_handle == INVALID_HANDLE_VALUE) continue;
+
+    do {
+      if (wcscmp(find_data.cFileName, L".") == 0 || wcscmp(find_data.cFileName, L"..") == 0) {
+        continue;
+      }
+
+      String16 filename16 = {0, find_data.cFileName};
+      while (filename16.str[filename16.size] != L'\0') filename16.size++;
+
+      String8 filename8 = string8_from_string16(scratch.arena, filename16);
+      if (filename8.size == 0) continue;
+
+      u64 full_path_size = current_dir.size + 1 + filename8.size;
+      char8* full_path_str = ArenaPushNoZero(arena, char8, full_path_size + 1);
+      String8 full_path = {full_path_size, full_path_str};
+
+      memcpy(full_path_str, current_dir.str, current_dir.size);
+      full_path_str[current_dir.size] = '\\';
+      memcpy(full_path_str + current_dir.size + 1, filename8.str, filename8.size);
+      full_path_str[full_path_size] = '\0';
+
+      b32 is_directory = HasFlags(find_data.dwFileAttributes, FILE_ATTRIBUTE_DIRECTORY);
+      b32 is_c_file    = !is_directory && file_has_extension(filename8, Str8("c"));
+      b32 is_h_file    = !is_directory && file_has_extension(filename8, Str8("h"));
+      b32 is_dot_file  = !is_directory && filename8.size > 0 && (filename8.str[0] == '.');
+      b32 is_dot_dir   =  is_directory && filename8.size > 0 && (filename8.str[0] == '.');
+
+      b32 add_path = true;
+      if (HasFlags(flags, FileFlag_WhiteList)) {
+        add_path = (is_c_file    && HasFlags(flags, FileFlag_CFiles))   ||
+                   (is_h_file    && HasFlags(flags, FileFlag_HFiles))   ||
+                   (is_directory && HasFlags(flags, FileFlag_Dirs))     ||
+                   (is_dot_file  && HasFlags(flags, FileFlag_DotFiles)) ||
+                   (is_dot_dir   && HasFlags(flags, FileFlag_DotDirs)); 
+      } else {
+        add_path = !((is_c_file   && HasFlags(flags, FileFlag_CFiles))   ||
+                    (is_h_file    && HasFlags(flags, FileFlag_HFiles))   ||
+                    (is_directory && HasFlags(flags, FileFlag_Dirs))     ||
+                    (is_dot_file  && HasFlags(flags, FileFlag_DotFiles)) ||
+                    (is_dot_dir   && HasFlags(flags, FileFlag_DotDirs)));
+      }
+
+      if (add_path) {
+        String8 path = string8_new(full_path_size, full_path_str);
+        if (is_directory) {
+          string8_list_push(scratch.arena, &dir_queue, path);
+        } else {
+          File_Data file = file_load(arena, path);
+          file_list_push(arena, &result, file);
+        }
+      }
+
+    } while (FindNextFileW(find_handle, &find_data));
+
+    FindClose(find_handle);
+  }
 
   scratch_end(&scratch);
   return result;
 }
-
 
 internal b32 path_is_directory(String8 path) {
   b32 result = false;
@@ -178,31 +235,47 @@ internal u32 file_size(String8 file_path) {
 }
 
 internal File_Data file_load(Arena* arena, String8 file_path) {
-  File_Data file = { 0 };
+  File_Data result = { 0 };
   if (!file_exists(file_path)) {
     printf("Error: file_load failed because file %s doesn't exist\n", file_path.str);
-    return file;
+    return result;
   }
 
   HANDLE file_handle = _win32_get_file_handle_read(file_path);
   if (file_handle == NULL) {
-    return file;
+    return result;
   }
   
-  u32 size   = file_size(file_path);
+  u32 size    = file_size(file_path);
   char8* data = ArenaPush(arena, char8, size);
   MemoryZero(data, size);
 
   if (!ReadFile(file_handle, data, size, NULL, NULL)) {
     DWORD error = GetLastError();  
     printf("Error: %lu in file_load.\n", error);
-  } else {
-    file.path = file_path;
-    MemoryCopy(&file.data, &data, size);
+    return result;
   }
+  result.path = file_path;
+  result.data.str = data;
+  result.data.size = size;
   
   CloseHandle(file_handle);
-  return file;
+  return result;
+}
+
+internal void file_list_push(Arena* arena, File_List* list, File_Data file) {
+  File_Node* node = ArenaPush(arena, File_Node, sizeof(File_Node));
+  
+  node->value = file;
+  if (!list->first && !list->last) {
+    list->first = node;
+    list->last  = node;
+  } else {
+    list->last->next = node;
+    list->last       = node;
+  }
+  list->node_count += 1;
+  list->total_size += node->value.data.size;
 }
 
 internal void println_string(String8 string) {

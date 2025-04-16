@@ -31,7 +31,6 @@ internal Arena* arena_init_sized(u64 reserve, u64 commit, const char8* label) {
     ERROR_MESSAGE_AND_EXIT("Error setting arena's memory");
   }
   
-  print_arena(arena, label);
   return arena;
 }
 

@@ -30,7 +30,7 @@ internal s64     string8_find_first(String8 str, String8 substring);
 internal s64     string8_find_last(String8 str, String8 substring); 
 internal b32     string8_equal(String8 a, String8 b);
 
-internal String_List string8_split(Arena* arena, String8 str, String8 split_char8acter);
+internal String_List string8_split(Arena* arena, String8 str, String8 split_character);
 internal String8     string8_list_pop(String_List* list);
 internal void        string8_list_clear(String_List* list);
 internal void        string8_list_push(Arena* arena, String_List* list, String8 str);
@@ -38,7 +38,6 @@ internal void        string8_list_push(Arena* arena, String_List* list, String8 
 internal b32 f32_from_string8(String8 str, f32* value);
 internal b32 s32_from_string8(String8 str, s32* value);
 internal b32 b32_from_string8(String8 str, b32* value);
-
 
 // 16 Bit strings
 typedef struct String16 {

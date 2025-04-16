@@ -275,7 +275,6 @@
 #define IsPow2(x)          ((x)!=0 && ((x)&((x)-1))==0)
 #define IsPow2OrZero(x)    ((((x) - 1)&(x)) == 0)
 
-
 #define MemoryCopy(dst, src, size) memcpy((dst), (src), (size))
 #define MemoryMove(dst, src, size) memmove((dst), (src), (size))
 #define MemorySet(dst, val, size)  memset((dst), (val), (size))
@@ -287,6 +286,10 @@
 #define MemoryZero(ptr, size) MemorySet((ptr), 0, (size))
 #define MemoryZeroStruct(ptr) MemoryZero((ptr), sizeof(*(ptr)))
 #define MemoryZeroArray(arr)  MemoryZero((arr), sizeof(arr))
+
+#define SetFlag(flags, flag)    ((flags) |= (flag))
+#define HasFlags(flags, check_flags) (((flags) & (check_flags)) == (check_flags))
+#define ToggleFlag(flags, flag) ((flags) ^= (flag))
 
 #define local_persist static
 #define global        static
