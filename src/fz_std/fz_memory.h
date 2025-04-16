@@ -19,7 +19,7 @@ typedef struct Arena {
 #define ARENA_HEADER_SIZE AlignPow2(sizeof(Arena), memory_get_page_size())
 
 internal Arena* arena_init();
-internal Arena* arena_init_sized(u64 reserve, u64 commit, const char* label);
+internal Arena* arena_init_sized(u64 reserve, u64 commit, const char8* label);
 
 internal void* arena_push(Arena* arena, u64 size);
 internal void* arena_push_no_zero(Arena* arena, u64 size);
@@ -28,7 +28,7 @@ internal void  arena_pop_to(Arena* arena, u64 pos);
 internal void  arena_clear(Arena* arena);
 internal void  arena_free(Arena* arena);
 
-internal void print_arena(Arena *arena, const char* label);
+internal void print_arena(Arena *arena, const char8* label);
 
 #define ArenaPush(arena, type, count)       (type*)arena_push((arena), sizeof(type)*(count))
 #define ArenaPushNoZero(arena, type, count) (type*)arena_push_no_zero((arena), sizeof(type)*(count))

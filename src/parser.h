@@ -27,21 +27,30 @@ typedef enum Token_Type {
 
 typedef struct Token{
     Token_Type type;
-    String value;
+    String8 value;
 } Token;
 
 ///////////////
 // Lexer
+
+typedef struct Workspace {
+    String8 workspace_path;
+    File_Data* files;
+    u32 total_files;
+} Workspace;
+
 typedef struct Lexer {
-    String project_path;
+    Workspace workspace;
     Token current_token;
     u32 y;
     u32 x;
 } Lexer;
 
-void lexer_init(Lexer* lexer, String project_path);
+void lexer_init(Lexer* lexer, String8 workspace_path); /* Initializes the lexer with workspace path */
 
-void lexer_eat_whitespace(Lexer* lexer);
+void lexer_eat_whitespace(Lexer* lexer); /* Ignores any kinds of spaces */
+void lexer_get_next_token(Lexer* lexer); /*  */
+void lexer_process_token(Lexer* lexer);  /*  */
 
 ///////////////
 // Parser
@@ -61,11 +70,11 @@ typedef enum AST_Node_Type {
 
 typedef struct AST_Node {
     AST_Node_Type type;
-    String value;
+    String8 value;
     struct AST_Node* left;
     struct AST_Node* right;
 } AST_Node;
 
-AST_Node* ast_node_new(Parser* parser, AST_Node_Type type, String value);
+AST_Node* ast_node_new(Parser* parser, AST_Node_Type type, String8 value);
 
 #endif // PARSER_H

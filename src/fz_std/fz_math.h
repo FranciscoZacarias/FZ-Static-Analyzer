@@ -203,11 +203,11 @@ internal f32     quatf32_dot(Quatf32 q1, Quatf32 q2);
 ///////////////////////
 //~ Prints
 
-internal void vec2f32_print(Vec2f32 v, const char *label);
-internal void vec3f32_print(Vec3f32 v, const char *label);
-internal void vec4f32_print(Vec4f32 v, const char *label);
-internal void mat4f32_print(Mat4f32 m, const char *label);
-internal void quatf32_print(Quatf32 q, const char *label);
-internal void transformf32_print(Transformf32 t, const char *label);
+internal void vec2f32_print(Vec2f32 v, const char8 *label);
+internal void vec3f32_print(Vec3f32 v, const char8 *label);
+internal void vec4f32_print(Vec4f32 v, const char8 *label);
+internal void mat4f32_print(Mat4f32 m, const char8 *label);
+internal void quatf32_print(Quatf32 q, const char8 *label);
+internal void transformf32_print(Transformf32 t, const char8 *label);
 
 #endif // FZ_MATH_H

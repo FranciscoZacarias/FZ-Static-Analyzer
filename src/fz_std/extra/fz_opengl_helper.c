@@ -1,4 +1,4 @@
-internal OGL_Shader ogl_make_shader(String source_path, GLenum kind) {
+internal OGL_Shader ogl_make_shader(String8 source_path, GLenum kind) {
   Arena_Temp scratch = scratch_begin(0, 0);
   OGL_Shader result  = glCreateShader(kind);
   GLenum error       = glGetError();
@@ -13,7 +13,7 @@ internal OGL_Shader ogl_make_shader(String source_path, GLenum kind) {
   GLint success;
   glGetShaderiv(result, GL_COMPILE_STATUS, &success);
   if (!success) {
-    char infoLog[1024];
+    char8 infoLog[1024];
     glGetShaderInfoLog(result, 1024, NULL, infoLog);
     printf("Error %d while compiling shader. Log: %s", success, infoLog);
     glDeleteShader(result);
@@ -35,7 +35,7 @@ internal OGL_Shader ogl_make_program(OGL_Shader *shaders, u32 count) {
   GLint success;
   glGetProgramiv(result, GL_LINK_STATUS, &success);
   if(!success) {
-    char infoLog[1024];
+    char8 infoLog[1024];
     glGetProgramInfoLog(result, 1024, NULL, infoLog);
     printf("Error %d linking compiled shader program. Log: %s", success, infoLog);
     for (u32 i = 0; i < count; i += 1){
@@ -47,7 +47,7 @@ internal OGL_Shader ogl_make_program(OGL_Shader *shaders, u32 count) {
   return result;
 }
 
-internal void renderer_set_uniform_mat4fv(u32 program, const char* uniform, Mat4f32 mat) {
+internal void renderer_set_uniform_mat4fv(u32 program, const char8* uniform, Mat4f32 mat) {
   s32 uniform_location = glGetUniformLocation(program, uniform);
   if (uniform_location == -1) {
     printf("Mat4f32 :: Uniform %s not found for program %d\n", uniform, program);
