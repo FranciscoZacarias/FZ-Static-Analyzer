@@ -69,7 +69,7 @@ internal u32       file_size(String8 file_path);
 internal File_Data file_load(Arena* arena, String8 file_path);
 internal b32       file_has_extension(String8 filename, String8 ext);
 internal u64       file_get_last_modified_time(String8 file_path);
-internal File_List file_get_all_files_in_path_recursively(Arena* arena, String8 path, u32 flags);
+internal File_List file_load_all_files_in_directory(Arena* arena, String8 path, u32 flags);
 
 internal b32 path_is_directory(String8 path);
 

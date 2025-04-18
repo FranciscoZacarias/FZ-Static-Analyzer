@@ -83,7 +83,7 @@ internal b32 file_has_extension(String8 filename, String8 ext) {
   return true;
 }
 
-internal File_List file_get_all_files_in_path_recursively(Arena* arena, String8 path, u32 flags) {
+internal File_List file_load_all_files_in_directory(Arena* arena, String8 path, u32 flags) {
   File_List result = {0};
   Arena_Temp scratch = scratch_begin(0, 0);
 

@@ -7,12 +7,15 @@ void application_init() {
   GeneralArena = arena_init();
 
   u32 flags = FileFlag_WhiteList | FileFlag_CFiles | FileFlag_HFiles | FileFlag_Dirs;
-  ProjectFiles = file_get_all_files_in_path_recursively(GeneralArena, Str8("D:\\work\\project_checker"), flags);
+  ProjectFiles = file_load_all_files_in_directory(GeneralArena, Str8("D:\\work\\project_checker"), flags);
   
   File_Node* current_file;
   current_file = ProjectFiles.first;
   do {
-    println_string(current_file->value.path);
+    File_Data file = current_file->value;
+
+    println_string(file.path);
+
     current_file = current_file->next;
   } while (current_file->next);
 
