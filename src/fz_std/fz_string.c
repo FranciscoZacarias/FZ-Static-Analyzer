@@ -13,17 +13,26 @@ internal String8 string8_range(char8* first, char8* range) {
   return result;
 }
 
-internal b32 string8_equal(String8 a, String8 b) {
-  if (a.size != b.size) {
-    return 0;
-  }
-  for(u32 i = 0; i < a.size; i++) {
-    if (a.str[i] != b.str[i]) {
-      return 0;
-    }
-  }
-  return 1;
+internal String8 string8_concat(Arena* arena, String8 a, String8 b) {
+  String8 result = { 0 };
+  result.size = a.size + b.size;
+  result.str = ArenaPush(arena, char8, result.size);
+  MemoryCopy(result.str, a.str, a.size);
+  MemoryCopy(result.str + a.size, b.str, b.size);
 }
+
+internal b32 string8_equal(String8 a, String8 b) {
+  if (a.size != b.size)  return false;
+  for(u32 i = 0; i < a.size; i++) {
+    if (a.str[i] != b.str[i])  return false;
+  }
+  return true;
+}
+
+internal void string8_printf(String8 str) {
+  printf("%.*s", (s32)str.size, str.str);
+}
+
 
 internal String_List string8_split(Arena* arena, String8 str, String8 split_character) {
   String_List result = { 0 };
@@ -166,6 +175,10 @@ internal wchar_t* wcstr_from_string16(Arena *arena, String16 str16) {
 //~ Char Functions
 internal b32 char8_is_alpha(char8 c) {
   return char8_is_alpha_upper(c) || char8_is_alpha_lower(c);
+}
+
+internal b32 char8_is_alphanum(char8 c) {
+  return char8_is_alpha(c) || char8_is_digit(c);
 }
 
 internal b32 char8_is_alpha_upper(char8 c) {

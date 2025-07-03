@@ -5,9 +5,13 @@
 #include "fz_include.h"
 
 // *.h
+#include "lexer.h"
 #include "parser.h"
 
 // *.c
+#include "lexer.c"
 #include "parser.c"
+
+
 
 #endif // MAIN_H

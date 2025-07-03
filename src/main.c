@@ -1,28 +1,29 @@
 #include "main.h"
 
-Arena* GeneralArena;
-File_List ProjectFiles;
+#define WORKSPACE_PATH Str8("D:\\work\\project_checker\\dummy")
 
-void application_init() {
-  GeneralArena = arena_init();
-
-  u32 flags = FileFlag_WhiteList | FileFlag_CFiles | FileFlag_HFiles | FileFlag_Dirs;
-  ProjectFiles = file_load_all_files_in_directory(GeneralArena, Str8("D:\\work\\project_checker"), flags);
+void entry_point() {
+  Arena_Temp scratch = scratch_begin(0, 0);
+  win32_enable_console();
   
-  File_Node* current_file;
-  current_file = ProjectFiles.first;
-  do {
-    File_Data file = current_file->value;
+  File_List files = file_get_all_files_in_path_recursively(scratch.arena, WORKSPACE_PATH, (FileFlag_WhiteList | FileFlag_CFiles | FileFlag_HFiles | FileFlag_Dirs));
+  File_Node* current_file = files.first;
 
-    println_string(file.path);
+  while (current_file != NULL) {
+    printf("\n\n"); string8_printf(current_file->value.path); printf("\n\n");
+
+    Lexer lexer;
+    lexer_init(&lexer, current_file->value.path);
+
+    Parser parser;
+    parser_init(&parser, &lexer);
+
+    AST_Node* ast = parser_parse_file(&parser);
+    ast_print(ast);
 
     current_file = current_file->next;
-  } while (current_file->next);
+    break;
+  }
 
-  printf("Nodes: %lld\n", ProjectFiles.node_count);
-  println_string(ProjectFiles.first->value.path);
-  println_string(ProjectFiles.last->value.path);
-}
-
-void application_tick() {
+  system("pause");
 }

@@ -1,0 +1,17 @@
+
+project_checker:
+[ ] Lexer is full of stuff that could be done with hash tables
+[ ] Tests for lexer
+
+codebase metaprogram:
+[ ] DOC(fz): should be in .h file
+[ ] TODO(fz): must look like this: Upper case, parentises with user, two dots.
+[ ] Inline if statements should have two spaces after next instruction I.e. if (something)  continue;
+[ ] Switch statements should have {} per case.
+[ ] Use codebase types (I.e. replace all int, unsigned int, double, float)
+[ ] Functions in impl. file should be in the same order as header file.
+[ ] Header file should not have function implementation
+[ ] List functions with declaration but no implementation
+[ ] No tabs
+[ ] Remove leading spaces
+[ ] Functions must be labeled as internal

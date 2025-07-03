@@ -23,12 +23,13 @@ typedef struct String_List {
 internal String8 string8_new(u64 size, char8* str);
 internal String8 string8_format(String8 fmt, ...);
 internal String8 string8_range(char8* first, char8* range);
-internal String8 string8_concat(Arena* arena, String8 a, String8 b);
+internal String8 string8_concat(Arena* arena, String8 a, String8 b); // TODO(fz): Test this func
 internal String8 string8_trim(String8 str);
 internal b32     string8_contains(String8 str, String8 substring);
 internal s64     string8_find_first(String8 str, String8 substring);
 internal s64     string8_find_last(String8 str, String8 substring); 
 internal b32     string8_equal(String8 a, String8 b);
+internal void    string8_printf(String8 str);
 
 internal String_List string8_split(Arena* arena, String8 str, String8 split_character);
 internal String8     string8_list_pop(String_List* list);
@@ -52,6 +53,7 @@ internal wchar_t* wcstr_from_string16(Arena *arena, String16 str16); // TODO(fz)
 
 //~ Char Functions
 internal b32   char8_is_alpha(char8 c);
+internal b32   char8_is_alphanum(char8 c);
 internal b32   char8_is_alpha_upper(char8 c);
 internal b32   char8_is_alpha_lower(char8 c);
 internal b32   char8_is_digit(char8 c);

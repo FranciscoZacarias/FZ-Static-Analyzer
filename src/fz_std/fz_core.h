@@ -218,9 +218,9 @@
 #define Glue(A,B) Glue_(A,B)
 
 #if COMPILER_MSVC
-# define Trap() __debugbreak()
+# define Breakpoint() DebugBreak();
 #elif COMPILER_CLANG || COMPILER_GCC
-# define Trap() __builtin_trap()
+# define Breakpoint() __builtin_trap();
 #else
 # error Unknown trap intrinsic for this compiler.
 #endif
