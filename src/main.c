@@ -2,6 +2,8 @@
 
 #define WORKSPACE_PATH Str8("D:\\work\\project_checker\\dummy")
 
+AST_Node* ast;
+
 void entry_point() {
   Arena_Temp scratch = scratch_begin(0, 0);
   win32_enable_console();
@@ -18,11 +20,11 @@ void entry_point() {
     Parser parser;
     parser_init(&parser, &lexer);
 
-    AST_Node* ast = parser_parse_file(&parser);
-    ast_print(ast);
+    ast = parser_parse_file(&parser);
+    printf("\n");
+    ast_print(ast, false, true);
 
     current_file = current_file->next;
-    break;
   }
 
   system("pause");

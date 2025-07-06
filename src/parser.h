@@ -83,12 +83,13 @@ typedef enum AST_Node_Type {
 } AST_Node_Type;
 
 typedef struct AST_Node {
-  AST_Node_Type type;
+  AST_Node_Type ast_type;
+  Token_Type token_type;
   String8 value;
   struct AST_Node** children;
   u32 children_count;
 } AST_Node;
-#define AST_NODE_MAX_CHILDREN 124
+#define AST_NODE_MAX_CHILDREN 1024
 
 ///////////////
 // Parser
@@ -109,22 +110,16 @@ typedef struct Parser {
 void      parser_init(Parser* parser, Lexer* lexer);
 AST_Node* parser_parse_file(Parser* parser);
 
-AST_Node* parser_get_global_declaration(Parser* parser);
-AST_Node* parser_get_function(Parser* parser, String8 type, String8 name);
-AST_Node* parser_get_variable_declaration(Parser* parser, String8 type, String8 name);
-AST_Node* parser_get_preprocessor_include(Parser* parser);
-AST_Node* parser_get_preprocessor_define(Parser* parser);
-AST_Node* parser_get_typedef(Parser* parser);
-
 void parser_skip_whitespace(Parser* parser);
 b32  parser_expect_token(Parser* parser, Token_Type expected);
 b32  parser_is_type_keyword(Token_Type type);
 void parser_advance(Parser* parser);
 
 AST_Node* ast_node_new(Parser* parser, AST_Node_Type type, String8 value);
+AST_Node* ast_node_from_token(Parser* parser, AST_Node_Type type, Token token);
 void      ast_node_add_child(Parser* parser, AST_Node* parent, AST_Node* child);
 
-void ast_print(AST_Node* root);
-void ast_print_node(AST_Node* node, u32 indent);
+void ast_print(AST_Node* root, b32 print_whitespace, b32 print_comments);
+void ast_print_node(AST_Node* node, u32 indent, b32 print_whitespace, b32 print_comments);
 
 #endif // PARSER_H

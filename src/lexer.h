@@ -49,15 +49,6 @@ static const char* token_type_names[] = {
 
   // Preprocessor
   "Token_Preprocessor_Hash",    // #
-  "Token_Preprocessor_Include", // #include
-  "Token_Preprocessor_Define",  // #define
-  "Token_Preprocessor_Ifdef",   // #ifdef
-  "Token_Preprocessor_Ifndef",  // #ifndef
-  "Token_Preprocessor_Endif",   // #endif
-  "Token_Preprocessor_Else",    // #else
-  "Token_Preprocessor_Elif",    // #elif
-  "Token_Preprocessor_Error",   // #error
-  "Token_Preprocessor_Pragma",  // #pragma
 
   // Operators
   "Token_Plus",            // +
@@ -132,7 +123,7 @@ typedef enum Token_Type {
   // Literals
   Token_Identifier,
   Token_Number,
-  Token_String,
+  Token_String_Literal,
   Token_Char,
 
   // Keywords
@@ -171,15 +162,6 @@ typedef enum Token_Type {
 
   // Preprocessor
   Token_Preprocessor_Hash,    // #
-  Token_Preprocessor_Include, // #include
-  Token_Preprocessor_Define,  // #define
-  Token_Preprocessor_Ifdef,   // #ifdef
-  Token_Preprocessor_Ifndef,  // #ifndef
-  Token_Preprocessor_Endif,   // #endif
-  Token_Preprocessor_Else,    // #else
-  Token_Preprocessor_Elif,    // #elif
-  Token_Preprocessor_Error,   // #error
-  Token_Preprocessor_Pragma,  // #pragma
 
   // Operators
   Token_Plus,            // +
@@ -195,7 +177,6 @@ typedef enum Token_Type {
   Token_Divide_Assign,   // /=
   Token_Modulo,          // %
   Token_Modulo_Assign,   // %=
-
 
   Token_Assign,             // =
   Token_Equal,              // ==
@@ -223,7 +204,7 @@ typedef enum Token_Type {
 
   // Delimiters
   Token_Semicolon,        // ;
-  Token_Comma,            // ,
+  Token_Comma,            // ,  
   Token_Dot,              // .
   Token_Colon,            // :
   Token_Question,         // ?

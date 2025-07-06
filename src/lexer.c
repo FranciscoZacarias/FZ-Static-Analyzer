@@ -459,7 +459,7 @@ b32 lexer_get_string(Lexer* lexer) {
     lexer_advance(lexer); // Skip closing quote
   }
   
-  lexer->current_token = lexer_make_token_range(lexer, Token_String, start, lexer->current_character);
+  lexer->current_token = lexer_make_token_range(lexer, Token_String_Literal, start, lexer->current_character);
   return true;
 }
 
