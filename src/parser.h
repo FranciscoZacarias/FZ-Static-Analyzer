@@ -44,7 +44,7 @@ static const char8* ast_node_types [] = {
 };
 
 typedef enum AST_Node_Type {
-  Node_Type_Program,
+  Node_Type_Program = 0,
   Node_Type_Function_Declaration,
   Node_Type_Function_Implementation,
   Node_Type_Variable_Declaration,

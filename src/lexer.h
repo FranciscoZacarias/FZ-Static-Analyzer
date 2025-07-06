@@ -298,6 +298,6 @@ b32   lexer_advance_if_match(Lexer* lexer, char8 expected);  /* Advance if curre
 b32   lexer_is_at_eof(Lexer* lexer);                         /* Checks if lexer is at the end of file */
 
 // Help
-b32   lexer_print_current_token(Lexer* lexer);
+b32 lexer_print_current_token(Lexer* lexer);
 
 #endif // LEXER_H

@@ -34,8 +34,8 @@ internal void string8_printf(String8 str) {
 }
 
 
-internal String_List string8_split(Arena* arena, String8 str, String8 split_character) {
-  String_List result = { 0 };
+internal String8_List string8_split(Arena* arena, String8 str, String8 split_character) {
+  String8_List result = { 0 };
   
   if (split_character.size != 1) {
     ERROR_MESSAGE_AND_EXIT("string8_split expects only one char8acter in split_character. It got %s of size %llu\n", split_character.str, split_character.size);
@@ -55,11 +55,21 @@ internal String_List string8_split(Arena* arena, String8 str, String8 split_char
   return result;
 }
 
-internal String8 string8_list_pop(String_List* list) {
+internal String8_List string8_list_new(Arena* arena, String8 str) {
+  String8_List result = {0};
+  String8_Node* node = ArenaPush(arena, String8_Node, 1);
+  result.first = node;
+  result.last  = node;
+  result.node_count = 1;
+  result.total_size = node->value.size;
+  return result;
+}
+
+internal String8 string8_list_pop(String8_List* list) {
   String8 result = {0};
   if (list->node_count < 1)  return result;
   
-  String_Node* last_node = list->last;
+  String8_Node* last_node = list->last;
   result            = last_node->value;
   list->total_size -= last_node->value.size;
 
@@ -68,7 +78,7 @@ internal String8 string8_list_pop(String_List* list) {
     list->last = 0;
     list->node_count = 0;
   } else {
-    String_Node* current = list->first;
+    String8_Node* current = list->first;
     while (current->next != last_node) {
       current = current->next;
     }
@@ -80,8 +90,8 @@ internal String8 string8_list_pop(String_List* list) {
 return result;
 }
 
-internal void string8_list_push(Arena* arena, String_List* list, String8 str) {
-  String_Node* node = ArenaPush(arena, String_Node, sizeof(String_Node));
+internal void string8_list_push(Arena* arena, String8_List* list, String8 str) {
+  String8_Node* node = ArenaPush(arena, String8_Node, sizeof(String8_Node));
   
   node->value = str;
   if (!list->first && !list->last) {
@@ -93,6 +103,16 @@ internal void string8_list_push(Arena* arena, String_List* list, String8 str) {
   }
   list->node_count += 1;
   list->total_size += node->value.size;
+}
+
+internal String8 string8_list_join(Arena* arena, String8_List* list) {
+  char8* dst = ArenaPush(arena, char8, list->total_size);
+  char8* ptr = dst;
+  for (String8_Node* node = list->first; node; node = node->next) {
+    MemoryCopy(ptr, node->value.str, node->value.size);
+    ptr += node->value.size;
+  }
+  return string8_new(list->total_size, dst);
 }
 
 internal b32 b32_from_string8(String8 str, b32* value) {

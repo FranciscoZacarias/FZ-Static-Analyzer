@@ -105,29 +105,22 @@ b32 lexer_get_comment(Lexer* lexer) {
   char8 c = lexer_current(lexer);
   
   if (c == '/' && lexer_peek(lexer, 1) == '/') {
-    char8* start = lexer->current_character;
+    lexer->current_token = lexer_make_token_current(lexer, Token_Comment_Line, 2);
     lexer_advance_by(lexer, 2);
-    while (!lexer_is_at_eof(lexer) && (lexer_current(lexer) != '\n') && lexer_current(lexer) != '\r') {
-      lexer_advance(lexer);
-    }
-    if (lexer_current(lexer) == '\r') {
-      lexer_advance_if_match(lexer, '\n');
-    }
-    lexer->current_token = lexer_make_token_range(lexer, Token_Comment_Line, start, lexer->current_character);
     return true;
   }
   
   if (c == '/' && lexer_peek(lexer, 1) == '*') {
     char8* start = lexer->current_character;
+    lexer->current_token = lexer_make_token_current(lexer, Token_Comment_Block_Start, 2);
     lexer_advance_by(lexer, 2);
-    lexer->current_token = lexer_make_token_range(lexer, Token_Comment_Block_Start, start, lexer->current_character);
     return true;
   }
   
   if (c == '*' && lexer_peek(lexer, 1) == '/') {
     char8* start = lexer->current_character;
+    lexer->current_token = lexer_make_token_current(lexer, Token_Comment_Block_End, 2);
     lexer_advance_by(lexer, 2);
-    lexer->current_token = lexer_make_token_range(lexer, Token_Comment_Block_End, start, lexer->current_character);
     return true;
   }
   

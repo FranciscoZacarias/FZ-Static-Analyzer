@@ -8,6 +8,7 @@ void parser_init(Parser* parser, Lexer* lexer) {
 }
 
 AST_Node* parser_parse_file(Parser* parser) {
+  Arena_Temp scratch = scratch_begin(0,0);
   AST_Node* program = ast_node_new(parser, Node_Type_Program, Str8(""));
 
   while (parser->lexer->current_token.type != Token_End_Of_File) {
@@ -18,9 +19,17 @@ AST_Node* parser_parse_file(Parser* parser) {
       ast_node_add_child(parser, program, whitespace_node);
       parser_advance(parser);
     } else if (parser->lexer->current_token.type == Token_Comment_Line) {
-      //AST_Node* comment_line_node = ast_node_new(parser, Node_Type_Whitespace, parser->lexer->current_token.value);
-      //ast_node_add_child(parser, program, comment_line_node);
-      
+      Token current = parser->lexer->current_token;
+      String8_List list = string8_list_new(scratch.arena, current.value);
+      while (current.type != Token_New_Line) {
+        string8_list_push(scratch.arena, &list, current.value);
+        parser_advance(parser);
+        current = parser->lexer->current_token;
+      }
+
+      String8  comment_node_value = string8_list_join(parser->arena, &list);
+      AST_Node* comment_line_node = ast_node_new(parser, Node_Type_Line_Comment, comment_node_value);
+      ast_node_add_child(parser, program, comment_line_node);
       parser_advance(parser);
     } else if (parser->lexer->current_token.type == Token_Comment_Block_Start) {
     
@@ -34,6 +43,7 @@ AST_Node* parser_parse_file(Parser* parser) {
       }
     }
   }
+  scratch_end(&scratch);
   return program;
 }
 

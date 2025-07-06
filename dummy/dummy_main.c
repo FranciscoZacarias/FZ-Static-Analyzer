@@ -10,6 +10,6 @@
 #else
   #define LOG(x)
 #endif
-
+// Another line
 #pragma once
 
