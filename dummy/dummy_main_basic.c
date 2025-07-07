@@ -1,3 +1,4 @@
+    
 // This is a line comment
 /*
    This is a block comment
@@ -11,7 +12,10 @@
   #define LOG(x)
 #endif
 
-#pragma once
+#pragma once // Another comment
+#pragma warning(disable : 4201) /* block comment in front of it */
+#pragma pack(push, 1)
+#pragma comment(lib, "user32.lib")
 
 // Keywords + literals
 static const double g_value = 10.5;
@@ -100,3 +104,6 @@ int main() {
   label:
   return 0;
 }
+
+   
+  

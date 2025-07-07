@@ -105,8 +105,8 @@ static const char* token_type_names[] = {
   "Token_Right_Bracket",     // ]
 
   // Special
-  "Token_Spaces",                // ' '
-  "Token_Tabs",                  // /t
+  "Token_Space",                // ' '
+  "Token_Tab",                  // /t
   "Token_New_Line",              // \n, \r, or \r\n
   "Token_Comment_Line",          // //
   "Token_Comment_Block_Start",   // /*
@@ -217,8 +217,8 @@ typedef enum Token_Type {
   Token_Right_Bracket,     // ]
 
   // Special
-  Token_Spaces,                // ' '
-  Token_Tabs,                  // /t
+  Token_Space,                // ' '
+  Token_Tab,                  // /t
   Token_New_Line,              // \n, \r, or \r\n
   Token_Comment_Line,          // //
   Token_Comment_Block_Start,   // /*

@@ -67,20 +67,14 @@ b32 lexer_get_whitespace(Lexer* lexer) {
   char8 c = lexer_current(lexer);
   
   if (c == ' ') {
-    char8* start = lexer->current_character;
-    while (lexer_current(lexer) == ' ') {
-      lexer_advance(lexer);
-    }
-    lexer->current_token = lexer_make_token_range(lexer, Token_Spaces, start, lexer->current_character);
+    lexer->current_token = lexer_make_token_current(lexer, Token_Space, 1);
+    lexer_advance(lexer);
     return true;
   }
   
   if (c == '\t') {
-    char8* start = lexer->current_character;
-    while (lexer_current(lexer) == '\t') {
-      lexer_advance(lexer);
-    }
-    lexer->current_token = lexer_make_token_range(lexer, Token_Tabs, start, lexer->current_character);
+    lexer->current_token = lexer_make_token_current(lexer, Token_Tab, 1);
+    lexer_advance(lexer);
     return true;
   }
   
@@ -624,7 +618,7 @@ b32 lexer_print_current_token(Lexer* lexer) {
 
   // Print token value if it has one (non-empty string)
   if (lexer->current_token.value.size > 0 && lexer->current_token.value.str) {
-    if (lexer->current_token.type == Token_Spaces || lexer->current_token.type == Token_Tabs || lexer->current_token.type == Token_New_Line) {
+    if (lexer->current_token.type == Token_Space || lexer->current_token.type == Token_Tab || lexer->current_token.type == Token_New_Line) {
       printf("Size: %d\n", (s32)lexer->current_token.value.size);
     } else {
       printf("Token value: %.*s\n", (s32)lexer->current_token.value.size, lexer->current_token.value.str);

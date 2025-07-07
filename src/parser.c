@@ -18,8 +18,8 @@ AST_Node* parser_parse_file(Parser* parser) {
   while (parser->lexer->current_token.type != Token_End_Of_File) {
     Arena_Temp scratch = scratch_begin(0,0);
 
-    if (parser->lexer->current_token.type == Token_Spaces ||
-        parser->lexer->current_token.type == Token_Tabs ||
+    if (parser->lexer->current_token.type == Token_Space ||
+        parser->lexer->current_token.type == Token_Tab ||
         parser->lexer->current_token.type == Token_New_Line) {
       AST_Node* whitespace_node = ast_node_from_token(parser, Node_Type_Whitespace, parser->lexer->current_token);
       ast_node_add_child(parser, program, whitespace_node);
@@ -92,6 +92,10 @@ AST_Node* parser_parse_file(Parser* parser) {
       } else if (string8_equal(preprocessor_type.value, Str8("define"))) {
         // TODO(Fz): Still unhandled
         parser_advance(parser);
+      } else if (string8_equal(preprocessor_type.value, Str8("pragma"))) {
+        // TODO(fz): Still unhandled
+        // We should start by implementing the parse_expression function that will work for most of these.
+        parser_advance(parser);
       } else {
         // TODO(fz): Error unhandled preprocessor type
         parser_advance(parser);
@@ -108,8 +112,8 @@ AST_Node* parser_parse_file(Parser* parser) {
 }
 
 void parser_skip_whitespace(Parser* parser) {
-  while (parser->lexer->current_token.type == Token_Spaces ||
-         parser->lexer->current_token.type == Token_Tabs ||
+  while (parser->lexer->current_token.type == Token_Space ||
+         parser->lexer->current_token.type == Token_Tab ||
          parser->lexer->current_token.type == Token_New_Line ||
          parser->lexer->current_token.type == Token_Comment_Line ||
          parser->lexer->current_token.type == Token_Comment_Block_Start) {
@@ -193,6 +197,7 @@ void ast_print_node(AST_Node* node, u32 indent, b32 print_whitespace, b32 print_
     } break;
 
     case Node_Type_Preprocessor_Define:
+    case Node_Type_Preprocessor_Pragma:
     case Node_Type_Preprocessor_Include: {
       color = Terminal_Color_Magenta;
     } break;
@@ -206,11 +211,7 @@ void ast_print_node(AST_Node* node, u32 indent, b32 print_whitespace, b32 print_
   // Print node type and value
   printf_color(color, "%s", ast_node_types[node->ast_type]);
   if (node->value.size > 0) {
-    if (!(node->ast_type && Node_Type_Whitespace ||
-          node->ast_type && Node_Type_Line_Comment ||
-          node->ast_type && Node_Type_Multi_Line_Comment)) {
-      printf_color(color, ": \"%.*s\"", (s32)node->value.size, node->value.str);
-    }
+    printf_color(color, ": \"%.*s\"", (s32)node->value.size, node->value.str);
   }
   printf("\n");
   

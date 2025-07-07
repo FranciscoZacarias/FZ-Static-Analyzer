@@ -1,4 +1,8 @@
 
+bugs:
+[ ] Single line comment node is skipping the first space after //
+[ ] Block comments are not storing the end block */
+
 project_checker:
 [ ] Lexer is full of stuff that could be done with hash tables
 [ ] Tests for lexer
