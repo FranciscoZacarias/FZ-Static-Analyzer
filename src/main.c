@@ -2,15 +2,17 @@
 
 #define WORKSPACE_PATH Str8("C:\\Personal\\FZ-Static-Analyzer\\dummy")
 
+
+
 void entry_point() {
-  Arena_Temp scratch = scratch_begin(0, 0);
+  Arena* arena = arena_init();
   win32_enable_console(true);
   
-  File_List files = file_get_all_files_in_path_recursively(scratch.arena, WORKSPACE_PATH, (FileFlag_WhiteList | FileFlag_CFiles | FileFlag_HFiles | FileFlag_Dirs));
+  File_List files = file_get_all_files_in_path_recursively(arena, WORKSPACE_PATH, (FileFlag_WhiteList | FileFlag_CFiles | FileFlag_HFiles | FileFlag_Dirs));
   File_Node* current_file = files.first;
 
   while (current_file != NULL) {
-    printf("\n\n"); string8_printf(current_file->value.path); printf("\n\n");
+	printf("\n#####################\n> "); string8_printf(current_file->value.path); printf("\n");
 
     Lexer lexer;
     lexer_init(&lexer, current_file->value.path);
