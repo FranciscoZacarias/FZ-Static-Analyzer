@@ -58,8 +58,8 @@ internal String8_List string8_split(Arena* arena, String8 str, String8 split_cha
 internal String8_List string8_list_new(Arena* arena, String8 str) {
   String8_List result = {0};
   String8_Node* node = ArenaPush(arena, String8_Node, 1);
-  result.first = node;
-  result.last  = node;
+  result.first = NULL;
+  result.last  = NULL;
   result.node_count = 1;
   result.total_size = node->value.size;
   return result;

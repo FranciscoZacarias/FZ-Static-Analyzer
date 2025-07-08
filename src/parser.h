@@ -6,6 +6,7 @@
 
 static const char8* ast_node_types [] = {
   "Node_Type_Unknown",
+
   "Node_Type_Program",
   "Node_Type_Function_Declaration",
   "Node_Type_Function_Implementation",
@@ -32,15 +33,25 @@ static const char8* ast_node_types [] = {
   "Node_Type_Typedef",
   "Node_Type_String_Literal",
   "Node_Type_Character_Literal",
-  "Node_Type_Preprocessor_Include",
+
+  // Preprocessor
+  "Node_Type_Preprocessor_System_Include",
+  "Node_Type_Preprocessor_Local_Include",
   "Node_Type_Preprocessor_Define",
   "Node_Type_Preprocessor_Pragma",
+
   "Node_Type_Break_Statement",
   "Node_Type_Continue_Statement",
   "Node_Type_Switch_Statement",
   "Node_Type_Case_Statement",
   "Node_Type_Default_Statement",
-  "Node_Type_Whitespace",
+
+  // Whitespace
+  "Node_Type_Space",
+  "Node_Type_Tab",
+  "Node_Type_New_Line",
+
+  // Comments
   "Node_Type_Line_Comment",
   "Node_Type_Multi_Line_Comment",
 };
@@ -76,7 +87,8 @@ typedef enum AST_Node_Type {
   Node_Type_Character_Literal,
 
   // Preprocessor
-  Node_Type_Preprocessor_Include,
+  Node_Type_Preprocessor_System_Include,
+  Node_Type_Preprocessor_Local_Include,
   Node_Type_Preprocessor_Define,
   Node_Type_Preprocessor_Pragma,
 
@@ -85,7 +97,13 @@ typedef enum AST_Node_Type {
   Node_Type_Switch_Statement,
   Node_Type_Case_Statement,
   Node_Type_Default_Statement,
-  Node_Type_Whitespace,
+
+  // Whitespace
+  Node_Type_Space,
+  Node_Type_Tab,
+  Node_Type_New_Line,
+
+  // Comments
   Node_Type_Line_Comment,
   Node_Type_Multi_Line_Comment,
 } AST_Node_Type;
@@ -113,14 +131,14 @@ typedef struct Parser {
   Arena* arena;
   Lexer* lexer;
   Parser_Error error;
+  AST_Node* root;
 } Parser;
 
 void      parser_init(Parser* parser, Lexer* lexer);
 AST_Node* parser_parse_file(Parser* parser);
 
-void parser_skip_whitespace(Parser* parser);
+void parser_skip_whitespace(Parser* parser, AST_Node* parent);
 b32  parser_expect_token(Parser* parser, Token_Type expected);
-b32  parser_is_type_keyword(Token_Type type);
 void parser_advance(Parser* parser);
 
 AST_Node* ast_node_new(Parser* parser, AST_Node_Type type, String8 value);

@@ -533,3 +533,19 @@ internal b32 win32_enable_opengl() {
 
   return result;
 }
+
+internal void win32_ensure_color_output() {
+  HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
+  if (handle == INVALID_HANDLE_VALUE) {
+    return;
+  }
+
+  DWORD mode = 0;
+  if (!GetConsoleMode(handle, &mode)) {
+    return;
+  }
+
+  if ((mode & ENABLE_VIRTUAL_TERMINAL_PROCESSING) == 0) {
+    SetConsoleMode(handle, mode | ENABLE_VIRTUAL_TERMINAL_PROCESSING);
+  }
+}

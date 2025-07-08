@@ -87,6 +87,7 @@ internal void win32_timer_end(PerformanceTimer* timer);
 // Helpers
 internal f32  win32_get_elapsed_time();
 internal void win32_fatal_error(const char* message, ...);
+internal void win32_ensure_color_output();
 
 //~ END APPLICATION SPACE
 /////////////////////////

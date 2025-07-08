@@ -5,6 +5,7 @@
 */
 
 #include <stdio.h>
+#include "local_include.h"
 #define PI 3.14
 #ifdef DEBUG
   #define LOG(x) printf(x)

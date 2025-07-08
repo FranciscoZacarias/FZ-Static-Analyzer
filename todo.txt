@@ -3,11 +3,11 @@ bugs:
 [ ] Single line comment node is skipping the first space after //
 [ ] Block comments are not storing the end block */
 
-project_checker:
+fzsa:
 [ ] Lexer is full of stuff that could be done with hash tables
 [ ] Tests for lexer
 
-codebase metaprogram:
+Static Analysis Features:
 [ ] DOC(fz): should be in .h file
 [ ] TODO(fz): must look like this: Upper case, parentises with user, two dots.
 [ ] Inline if statements should have two spaces after next instruction I.e. if (something)  continue;

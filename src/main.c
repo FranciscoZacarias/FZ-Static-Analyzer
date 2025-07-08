@@ -1,8 +1,6 @@
 #include "main.h"
 
-#define WORKSPACE_PATH Str8("D:\\work\\project_checker\\dummy")
-
-AST_Node* ast;
+#define WORKSPACE_PATH Str8("C:\\Personal\\FZ-Static-Analyzer\\dummy")
 
 void entry_point() {
   Arena_Temp scratch = scratch_begin(0, 0);
@@ -20,9 +18,9 @@ void entry_point() {
     Parser parser;
     parser_init(&parser, &lexer);
 
-    ast = parser_parse_file(&parser);
+    parser_parse_file(&parser);
     printf("\n");
-    ast_print(ast, false, true);
+    ast_print(parser.root, false, true);
 
     current_file = current_file->next;
   }

@@ -1,4 +1,4 @@
 build/*
 .git/*
-project_checker.rdbg
-project_checker.10x
+FZ-Static-Analyzer.rdbg
+FZ-Static-Analyzer.10x

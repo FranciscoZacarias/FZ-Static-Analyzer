@@ -1,1 +1,1 @@
-build\project_check.exe
+build\fzsa.exe

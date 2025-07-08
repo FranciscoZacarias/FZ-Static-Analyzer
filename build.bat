@@ -18,5 +18,5 @@ set linker_flags= user32.lib ^
 
 if not exist build mkdir build
 pushd build
-%compiler_and_entry% %cl_default_flags% %external_include% %linker_flags% /Fe"project_check.exe"
+%compiler_and_entry% %cl_default_flags% %external_include% %linker_flags% /Fe"fzsa.exe"
 popd
