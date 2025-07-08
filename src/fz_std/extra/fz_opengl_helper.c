@@ -1,4 +1,4 @@
-internal GLuint opengl_compile_program(String8 source_path, GLenum shader_stage) {
+internal GLuint opengl_compile_program(String8 source_path, GLenum kind) {
   Arena_Temp scratch = scratch_begin(0, 0);
   GLuint program = 0;
     
@@ -7,15 +7,33 @@ internal GLuint opengl_compile_program(String8 source_path, GLenum shader_stage)
   if (shader_source.data.size == 0) {
     ERROR_MESSAGE_AND_EXIT("Failed to load shader file: %.*s", (s32)source_path.size, source_path.str);
   }
-    
+  
+  printf("\n------------\n");
+  println_string(shader_source.data);
+  printf("\n------------\n");
+
+  // Create and compile shader
+  
+  // Create separable shader program
+  char8 *null_terminated_source = ArenaPush(scratch.arena, char, shader_source.data.size + 1);
+  MemoryCopy(null_terminated_source, shader_source.data.str, shader_source.data.size);
+  null_terminated_source[shader_source.data.size] = 0;
+
+  program = glCreateShaderProgramv(kind, 1, (const GLchar *const *)&null_terminated_source);
+  //program = glCreateShaderProgramv(kind, 1, (const GLchar**)&shader_source.data.str);
+  glProgramParameteri(program, GL_PROGRAM_SEPARABLE, GL_TRUE);
+  
+  // Check link status
+  GLint success;
+  glGetProgramiv(program, GL_LINK_STATUS, &success);
+  if (!success) {
+    GLchar info_log[1024];
+    glGetProgramInfoLog(program, sizeof(info_log), NULL, info_log);
+    ERROR_MESSAGE_AND_EXIT("Shader link failed for %.*s: %s", (s32)source_path.size, source_path.str, info_log);
+  }
+  
   scratch_end(&scratch);
   return program;
-}
-
-internal GLuint opengl_create_pipeline(GLuint* programs, u32 count) {
-  GLuint pipeline = 0;
-
-  return pipeline;
 }
 
 internal void opengl_set_uniform_mat4fv(u32 program, const char8* uniform, Mat4f32 mat) {

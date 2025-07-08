@@ -4,7 +4,7 @@
 
 void entry_point() {
   Arena_Temp scratch = scratch_begin(0, 0);
-  win32_enable_console();
+  win32_enable_console(true);
   
   File_List files = file_get_all_files_in_path_recursively(scratch.arena, WORKSPACE_PATH, (FileFlag_WhiteList | FileFlag_CFiles | FileFlag_HFiles | FileFlag_Dirs));
   File_Node* current_file = files.first;

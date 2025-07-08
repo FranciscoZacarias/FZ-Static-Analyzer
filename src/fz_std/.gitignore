@@ -1,0 +1,5 @@
+update.bat
+.git
+build/*
+fz_std.10x
+*.rdbg

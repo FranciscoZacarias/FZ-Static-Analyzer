@@ -42,8 +42,6 @@ void printf_color(Terminal_Color color, const char* fmt, ...) {
     "\x1b[97m", // Bright White
   };
 
-  win32_ensure_color_output();
-
   if ((u32)color >= sizeof(ansi_colors)/sizeof(ansi_colors[0])) {
     color = Terminal_Color_Default;
   }

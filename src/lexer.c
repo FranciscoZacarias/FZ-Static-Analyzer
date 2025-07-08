@@ -58,8 +58,6 @@ void lexer_get_next_token(Lexer* lexer) {
     lexer_advance(lexer);
   }
 
-  lexer_print_current_token(lexer);
-  
   return;
 }
 

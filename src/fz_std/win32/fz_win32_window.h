@@ -63,7 +63,7 @@ internal void entry_point(); // DOC(fz): Application layer must implement this f
 
 // Window
 internal void win32_init();
-internal b32  win32_enable_console();
+internal b32  win32_enable_console(b32 enable_color);
 internal b32  win32_enable_window(s32 width, s32 height);
 internal b32  win32_enable_opengl();
 internal void win32_get_webgl_functions(); 
@@ -87,7 +87,6 @@ internal void win32_timer_end(PerformanceTimer* timer);
 // Helpers
 internal f32  win32_get_elapsed_time();
 internal void win32_fatal_error(const char* message, ...);
-internal void win32_ensure_color_output();
 
 //~ END APPLICATION SPACE
 /////////////////////////

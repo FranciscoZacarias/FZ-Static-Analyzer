@@ -251,31 +251,40 @@ internal void win32_init() {
   win32_timer_start(&_Timer_FrameTime);
 }
 
-internal b32 win32_enable_console() {
+internal b32 win32_enable_console(b32 enable_color) {
+  b32 result = false;
+
   if (GetConsoleWindow() != NULL) {
     // Already attached to a console; no need to allocate a new one.
-    return true;
-  }
-
-  // Try attaching to parent process console.
-  if (AttachConsole(ATTACH_PARENT_PROCESS)) {
+    result = false;
+  } else if (AttachConsole(ATTACH_PARENT_PROCESS)) {
+    // Try attaching to parent process console.
     FILE* fp;
     freopen_s(&fp, "CONOUT$", "w", stdout);
     freopen_s(&fp, "CONOUT$", "w", stderr);
-    _IsTerminalEnabled = true;
-    return true;
-  }
-
-  // No console attached; allocate a new one.
-  if (AllocConsole()) {
+    result = true;
+  } else if (AllocConsole()) {
+    // No console attached; allocate a new one.
     FILE* fp;
     freopen_s(&fp, "CONOUT$", "w", stdout);
     freopen_s(&fp, "CONOUT$", "w", stderr);
-    _IsTerminalEnabled = true;
-    return true;
+    result = true;
+  }
+  _IsTerminalEnabled = result;
+
+  if (_IsTerminalEnabled && enable_color) {
+    HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
+    if (handle != INVALID_HANDLE_VALUE) {
+      DWORD mode = 0;
+      if (GetConsoleMode(handle, &mode)) {
+        if ((mode & ENABLE_VIRTUAL_TERMINAL_PROCESSING) == 0) {
+          SetConsoleMode(handle, mode | ENABLE_VIRTUAL_TERMINAL_PROCESSING);
+        }
+	  }
+	}
   }
 
-  return false;
+  return result;
 }
 
 internal b32 win32_enable_window(s32 width, s32 height) {
@@ -438,20 +447,68 @@ internal void win32_get_webgl_functions() {
 }
 
 // TODO(fz) if opengl is enabled...
-internal void APIENTRY opengl_debug_callback(
-    GLenum source, GLenum type, GLuint id, GLenum severity,
-    GLsizei length, const GLchar* message, const void* user)
-{
-    OutputDebugStringA(message);
-    OutputDebugStringA("\n");
-    if (severity == GL_DEBUG_SEVERITY_HIGH || severity == GL_DEBUG_SEVERITY_MEDIUM)
-    {
-        if (IsDebuggerPresent())
-        {
-            Assert(!"OpenGL error - check the callstack in debugger");
-        }
-        win32_fatal_error("OpenGL API usage error! Use debugger to examine call stack!");
+internal void APIENTRY opengl_debug_callback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *message, const void *user) {
+  // Decode source
+  const char *source_str = "Unknown";
+  switch (source) {
+    case GL_DEBUG_SOURCE_API:             source_str = "API"; break;
+    case GL_DEBUG_SOURCE_WINDOW_SYSTEM:   source_str = "Window System"; break;
+    case GL_DEBUG_SOURCE_SHADER_COMPILER: source_str = "Shader Compiler"; break;
+    case GL_DEBUG_SOURCE_THIRD_PARTY:     source_str = "Third Party"; break;
+    case GL_DEBUG_SOURCE_APPLICATION:     source_str = "Application"; break;
+    case GL_DEBUG_SOURCE_OTHER:           source_str = "Other"; break;
+  }
+
+  // Decode type
+  const char *type_str = "Unknown";
+  switch (type) {
+    case GL_DEBUG_TYPE_ERROR:               type_str = "Error"; break;
+    case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR: type_str = "Deprecated Behavior"; break;
+    case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:  type_str = "Undefined Behavior"; break;
+    case GL_DEBUG_TYPE_PORTABILITY:         type_str = "Portability"; break;
+    case GL_DEBUG_TYPE_PERFORMANCE:         type_str = "Performance"; break;
+    case GL_DEBUG_TYPE_MARKER:              type_str = "Marker"; break;
+    case GL_DEBUG_TYPE_PUSH_GROUP:          type_str = "Push Group"; break;
+    case GL_DEBUG_TYPE_POP_GROUP:           type_str = "Pop Group"; break;
+    case GL_DEBUG_TYPE_OTHER:               type_str = "Other"; break;
+  }
+
+  // Decode severity
+  const char *severity_str = "Unknown";
+  switch (severity) {
+    case GL_DEBUG_SEVERITY_HIGH:         severity_str = "High"; break;
+    case GL_DEBUG_SEVERITY_MEDIUM:       severity_str = "Medium"; break;
+    case GL_DEBUG_SEVERITY_LOW:          severity_str = "Low"; break;
+    case GL_DEBUG_SEVERITY_NOTIFICATION: severity_str = "Notification"; break;
+  }
+
+  char buffer[1024];
+  if (severity != GL_DEBUG_SEVERITY_NOTIFICATION) {
+    // Format full message
+    int n = snprintf(buffer, sizeof(buffer),
+      "OpenGL Debug Message\n"
+      "  Source: %s\n"
+      "  Type: %s\n"
+      "  Severity: %s\n"
+      "  ID: %u\n"
+      "  Message: %.*s\n",
+      source_str, type_str, severity_str, id, length, message);
+    
+    if (n > 0) {
+      OutputDebugStringA(buffer);
+      OutputDebugStringA("\n");
+      if (!IsDebuggerPresent()) {
+        fprintf(stderr, "%s\n", buffer);
+      }
     }
+  }
+
+  if (severity == GL_DEBUG_SEVERITY_HIGH || severity == GL_DEBUG_SEVERITY_MEDIUM) {
+    if (IsDebuggerPresent()) {
+      Breakpoint();
+    }
+    win32_fatal_error(buffer);
+  }
 }
 
 // DOC(fz): https://gist.github.com/mmozeiko/ed2ad27f75edf9c26053ce332a1f6647
@@ -531,21 +588,6 @@ internal b32 win32_enable_opengl() {
     glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
   }
 
+  _IsOpenGLContextEnabled = result;
   return result;
-}
-
-internal void win32_ensure_color_output() {
-  HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
-  if (handle == INVALID_HANDLE_VALUE) {
-    return;
-  }
-
-  DWORD mode = 0;
-  if (!GetConsoleMode(handle, &mode)) {
-    return;
-  }
-
-  if ((mode & ENABLE_VIRTUAL_TERMINAL_PROCESSING) == 0) {
-    SetConsoleMode(handle, mode | ENABLE_VIRTUAL_TERMINAL_PROCESSING);
-  }
 }

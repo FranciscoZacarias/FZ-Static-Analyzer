@@ -19,6 +19,7 @@
 
 //~ Single headers
 #include "fz_core.h"
+#include "fz_io.h" // TODO(fz): This is actually OS dependent 
 
 //~ Headers
 #include "fz_math.h"
@@ -37,8 +38,6 @@
 #include "fz_win32.h"
 #include "fz_win32_window.h"
 
-//~ IO Operations.
-#include "fz_io.h"
 
 //~ Source
 #include "fz_math.c"
