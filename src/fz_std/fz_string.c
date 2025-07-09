@@ -29,6 +29,27 @@ internal b32 string8_equal(String8 a, String8 b) {
   return true;
 }
 
+internal String8 string8_slice(String8 str, u64 start, u64 end) {
+  if (start > str.size) start = str.size;
+  if (end > str.size)   end   = str.size;
+  if (start > end)      start = end;
+  return (String8){ .size = end - start, .str  = str.str + start };
+}
+
+internal b32 string8_find_last(String8 str, String8 substring, u64* index) {
+  if (substring.size > str.size) return 0;
+  b32 result = false;
+  *index = U64_MAX;
+  for (u64 i = str.size - substring.size + 1; i-- > 0;) {
+    if (MemoryMatch(&str.str[i], substring.str, substring.size)) {
+      *index = i;
+      result = true;
+      break;
+    }
+  }
+  return result;
+}
+
 internal void string8_printf(String8 str) {
   printf("%.*s", (s32)str.size, str.str);
 }
@@ -161,6 +182,13 @@ internal b32 s32_from_string8(String8 str, s32* value) {
     }
   }
   return 1;
+}
+
+internal char8* cstring_from_string8(Arena* arena, String8 str) {
+  char8* result = ArenaPush(arena, char8, str.size + 1);
+  MemoryCopy(result, str.str, str.size);
+  result[str.size] = 0;
+  return result;
 }
 
 internal String16 string16_from_string8(Arena *arena, String8 str8) {

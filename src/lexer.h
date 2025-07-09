@@ -44,7 +44,6 @@ static const char* token_type_names[] = {
   "Token_Keyword_Goto",
   "Token_Keyword_Restrict",
   "Token_Keyword_Volatile",
-  "Token_Keyword_Auto",
   "Token_Keyword_Register",
 
   // Preprocessor
@@ -64,7 +63,6 @@ static const char* token_type_names[] = {
   "Token_Divide_Assign",   // /=
   "Token_Modulo",          // %
   "Token_Modulo_Assign",   // %=
-
 
   "Token_Assign",             // =
   "Token_Equal",              // ==
@@ -157,11 +155,10 @@ typedef enum Token_Type {
   Token_Keyword_Goto,
   Token_Keyword_Restrict,
   Token_Keyword_Volatile,
-  Token_Keyword_Auto,
   Token_Keyword_Register,
 
   // Preprocessor
-  Token_Preprocessor_Hash,    // #
+  Token_Preprocessor_Hash, // #
 
   // Operators
   Token_Plus,            // +
@@ -209,12 +206,12 @@ typedef enum Token_Type {
   Token_Colon,            // :
   Token_Question,         // ?
 
-  Token_Left_Parenthesis,  // (
-  Token_Right_Parenthesis, // )
-  Token_Left_Brace,        // {
-  Token_Right_Brace,       // }
-  Token_Left_Bracket,      // [
-  Token_Right_Bracket,     // ]
+  Token_Open_Parenthesis,  // (
+  Token_Close_Parenthesis, // )
+  Token_Open_Brace,        // {
+  Token_Close_Brace,       // }
+  Token_Open_Bracket,      // [
+  Token_Close_Bracket,     // ]
 
   // Special
   Token_Space,                // ' '

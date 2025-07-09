@@ -58,6 +58,10 @@ void lexer_get_next_token(Lexer* lexer) {
     lexer_advance(lexer);
   }
 
+#if PRINT_TOKENS
+  lexer_print_current_token(lexer);
+#endif
+
   return;
 }
 
@@ -318,27 +322,27 @@ b32 lexer_get_braces(Lexer* lexer) {
   
   switch (c) {
     case '(':
-      lexer->current_token = lexer_make_token_current(lexer, Token_Left_Parenthesis, 1);
+      lexer->current_token = lexer_make_token_current(lexer, Token_Open_Parenthesis, 1);
       lexer_advance(lexer);
       return true;
     case ')':
-      lexer->current_token = lexer_make_token_current(lexer, Token_Right_Parenthesis, 1);
+      lexer->current_token = lexer_make_token_current(lexer, Token_Close_Parenthesis, 1);
       lexer_advance(lexer);
       return true;
     case '{':
-      lexer->current_token = lexer_make_token_current(lexer, Token_Left_Brace, 1);
+      lexer->current_token = lexer_make_token_current(lexer, Token_Open_Brace, 1);
       lexer_advance(lexer);
       return true;
     case '}':
-      lexer->current_token = lexer_make_token_current(lexer, Token_Right_Brace, 1);
+      lexer->current_token = lexer_make_token_current(lexer, Token_Close_Brace, 1);
       lexer_advance(lexer);
       return true;
     case '[':
-      lexer->current_token = lexer_make_token_current(lexer, Token_Left_Bracket, 1);
+      lexer->current_token = lexer_make_token_current(lexer, Token_Open_Bracket, 1);
       lexer_advance(lexer);
       return true;
     case ']':
-      lexer->current_token = lexer_make_token_current(lexer, Token_Right_Bracket, 1);
+      lexer->current_token = lexer_make_token_current(lexer, Token_Close_Bracket, 1);
       lexer_advance(lexer);
       return true;
   }
@@ -531,7 +535,6 @@ Token lexer_is_token_keyword(Token identifier_token) {
   if (string8_equal(value, Str8("goto")))      return (Token){Token_Keyword_Goto,     value};
   if (string8_equal(value, Str8("restrict")))  return (Token){Token_Keyword_Restrict, value};
   if (string8_equal(value, Str8("volatile")))  return (Token){Token_Keyword_Volatile, value};
-  if (string8_equal(value, Str8("auto")))      return (Token){Token_Keyword_Auto,     value};
   if (string8_equal(value, Str8("register")))  return (Token){Token_Keyword_Register, value};
     
   return identifier_token;

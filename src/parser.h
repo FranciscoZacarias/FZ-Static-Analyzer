@@ -138,8 +138,20 @@ void      parser_init(Parser* parser, Lexer* lexer);
 AST_Node* parser_parse_file(Parser* parser);
 
 void parser_skip_whitespace(Parser* parser, AST_Node* parent);
-b32  parser_expect_token(Parser* parser, Token_Type expected);
 void parser_advance(Parser* parser);
+
+b32 parser_expect_token(Parser* parser, Token_Type expected);
+b32 parser_is_token_datatype(Parser* parser);
+
+// Parse functions
+AST_Node* parser_parse_expression(Parser* parser);
+b32       parser_parse_whitespace(Parser* parser);
+b32       parser_parse_comment_line(Parser* parser);
+b32       parser_parse_comment_block(Parser* parser);
+b32       parser_parse_preprocessor_directives(Parser* parser);
+b32       parser_parse_typedef(Parser* parser);
+b32       parser_parse_function_definition(Parser* parser);
+b32       parser_parse_declaration(Parser* parser);
 
 AST_Node* ast_node_new(Parser* parser, AST_Node_Type type, String8 value);
 AST_Node* ast_node_from_token(Parser* parser, AST_Node_Type type, Token token);
