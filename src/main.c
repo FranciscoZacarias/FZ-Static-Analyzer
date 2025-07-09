@@ -1,4 +1,5 @@
 
+#define DEBUG 1
 #define PRINT_TOKENS 0
 #include "main.h"
 

@@ -1,4 +1,13 @@
 ///////////////
+// Token
+Token_Array token_array_new(Arena* arena, u64 count) {
+  Token_Array result = {0};
+  result.tokens = ArenaPush(arena, Token, count);
+  result.count = 0;
+  return result;
+}
+
+///////////////
 // Lexer
 void lexer_init(Lexer* lexer, String8 file_path) {
   MemoryZeroStruct(lexer);

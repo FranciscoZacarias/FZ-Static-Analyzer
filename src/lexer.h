@@ -231,6 +231,14 @@ typedef struct Token {
   String8 value;
 } Token;
 
+typedef struct Token_Array {
+  Token* tokens;
+  u64    count;
+} Token_Array;
+#define MAX_TOKENS_IN_ARRAY 8
+
+Token_Array token_array_new(Arena* arena, u64 count);
+
 ///////////////
 // Lexer
 

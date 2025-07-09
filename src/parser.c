@@ -7,9 +7,8 @@ void parser_init(Parser* parser, Lexer* lexer) {
   lexer_get_next_token(lexer);
 
   AST_Node* program       = ArenaPush(parser->arena, AST_Node, 1);
-  program->ast_type       = Node_Type_Program;
-  program->token_type     = Token_Unknown;
-  program->value          = Str8("Program");
+  program->ast_type       = AST_Node_Program;
+  program->tokens         = (Token_Array) { NULL, 0 };
   program->children       = ArenaPush(parser->arena, AST_Node*, AST_NODE_MAX_CHILDREN);
   program->children_count = 0;
 
@@ -36,20 +35,27 @@ AST_Node* parser_parse_file(Parser* parser) {
   return parser->root;
 }
 
-void parser_skip_whitespace(Parser* parser, AST_Node* parent) {
-  while (parser->lexer->current_token.type == Token_Space ||
-         parser->lexer->current_token.type == Token_Tab ||
-         parser->lexer->current_token.type == Token_New_Line) {
-    AST_Node_Type node_type = Node_Type_Unknown;
-    switch(parser->lexer->current_token.type) {
-      case Token_Space:    { node_type = Node_Type_Space;    } break;
-      case Token_Tab:      { node_type = Node_Type_Tab;      } break;
-      case Token_New_Line: { node_type = Node_Type_New_Line; } break;
-    }
-    AST_Node* node = ast_node_from_token(parser, node_type, parser->lexer->current_token);
+void parser_parse_whitespace(Parser* parser, AST_Node* parent) {
+  Arena_Temp scratch = scratch_begin(0,0);
+  Token_Array tokens = token_array_new(scratch.arena, 0);
+  Token first_token  = parser->lexer->current_token;
+
+  AST_Node_Type node_type = AST_Node_Unknown;
+  switch(first_token.type) {
+    case Token_Space:    { node_type = AST_Node_Space;    } break;
+    case Token_Tab:      { node_type = AST_Node_Tab;      } break;
+    case Token_New_Line: { node_type = AST_Node_New_Line; } break;
+  }
+
+  while (first_token.type == Token_Space || first_token.type == Token_Tab || first_token.type == Token_New_Line) {
+    Token current_token = parser->lexer->current_token;
+    if (first_token != current_token)  break;
+
+    AST_Node* node = ast_node_new(parser, node_type, 
     ast_node_add_child(parser, parent, node);
     parser_advance(parser);
   }
+  scratch_end(&scratch);
 }
 
 void parser_advance(Parser* parser) {
@@ -81,23 +87,6 @@ AST_Node* parser_parse_expression(Parser* parser) {
   return result;
 }
 
-b32 parser_parse_whitespace(Parser* parser) {
-  b32 result = false;
-  if (parser->lexer->current_token.type == Token_Space || parser->lexer->current_token.type == Token_Tab || parser->lexer->current_token.type == Token_New_Line) {
-    AST_Node_Type type = Node_Type_Unknown;
-    switch(parser->lexer->current_token.type) {
-      case Token_Space:    { type = Node_Type_Space;    } break;
-      case Token_Tab:      { type = Node_Type_Tab;      } break;
-      case Token_New_Line: { type = Node_Type_New_Line; } break;
-    }
-    AST_Node* whitespace_node = ast_node_from_token(parser, type, parser->lexer->current_token);
-    ast_node_add_child(parser, parser->root, whitespace_node);
-    parser_advance(parser);
-    result = true;
-  }
-  return result;
-}
-
 b32 parser_parse_comment_line(Parser* parser) {
   b32 result = false;
   Arena_Temp scratch = scratch_begin(0,0);
@@ -110,7 +99,7 @@ b32 parser_parse_comment_line(Parser* parser) {
       current = parser->lexer->current_token;
     }
     String8  comment_node_value = string8_list_join(parser->arena, &list);
-    AST_Node* comment_line_node = ast_node_new(parser, Node_Type_Line_Comment, comment_node_value);
+    AST_Node* comment_line_node = ast_node_new(parser, AST_Node_Comment_Line, comment_node_value);
     ast_node_add_child(parser, parser->root, comment_line_node);
     parser_advance(parser);
     result = true;
@@ -134,7 +123,7 @@ b32 parser_parse_comment_block(Parser* parser) {
     parser_advance(parser);
     current = parser->lexer->current_token;
     String8  comment_node_value = string8_list_join(parser->arena, &list);
-    AST_Node* comment_line_node = ast_node_new(parser, Node_Type_Multi_Line_Comment, comment_node_value);
+    AST_Node* comment_line_node = ast_node_new(parser, AST_Node_Comment_Block, comment_node_value);
     ast_node_add_child(parser, parser->root, comment_line_node);
     parser_advance(parser);
     result = true;
@@ -168,7 +157,7 @@ b32 parser_parse_preprocessor_directives(Parser* parser) {
             current = parser->lexer->current_token;
           }
           String8 header_name = string8_list_join(parser->arena, &list);
-          AST_Node* node = ast_node_new(parser, Node_Type_Preprocessor_System_Include, header_name);
+          AST_Node* node = ast_node_new(parser, AST_Node_Preprocessor_Include_System, header_name);
           ast_node_add_child(parser, parser->root, node);
           parser_advance(parser);
         } break;
@@ -176,7 +165,7 @@ b32 parser_parse_preprocessor_directives(Parser* parser) {
           Token header_name = parser->lexer->current_token;
           Assert(header_name.value.str[0] == '"' && header_name.value.str[header_name.value.size-1] == '"');
           header_name.value = string8_new(header_name.value.size-2, header_name.value.str+1);
-          AST_Node* node = ast_node_from_token(parser, Node_Type_Preprocessor_Local_Include, header_name);
+          AST_Node* node = ast_node_from_token(parser, AST_Node_Preprocessor_Include_Local, header_name);
           ast_node_add_child(parser, parser->root, node);
           parser_advance(parser);
         } break;
@@ -222,23 +211,30 @@ b32 parser_parse_declaration(Parser* parser) {
 ///////////////
 // AST
 
-AST_Node* ast_node_new(Parser* parser, AST_Node_Type type, String8 value) {
-  AST_Node* node       = ArenaPush(parser->arena, AST_Node, 1);
-  node->ast_type       = type;
-  node->token_type     = Token_Unknown;
-  node->value          = (value.size > 0) ? value : Str8("");
-  node->children       = ArenaPush(parser->arena, AST_Node*, AST_NODE_MAX_CHILDREN);
-  node->children_count = 0;
-  return node;
-}
+AST_Node* ast_node_new(Parser* parser, Token_Array token_array, AST_Node_Type node_type, u32 variant) {
+  AST_Node* node = ArenaPush(parser->arena, AST_Node, 1);
+  node->tokens   = token_array;
 
-AST_Node* ast_node_from_token(Parser* parser, AST_Node_Type type, Token token) {
-  // TODO(fz): This could infer the ast_node_type from token
+#if DEBUG
+  Arena_Temp scratch = scratch_begin(0,0);
+  if (token_array.count > 0) {
+    String8_List token_value_list = string8_list_new(scratch->arena, node->tokens[0].tokens.value);
+    for (u32 i = i; i < node->tokens.count; i += 1) {
+      string8_list_push(scratch->arena, &token_value_list, node->tokens[i].tokens.value);
+    }
+    node->value = string8_list_join(parser->arena, &token_value_list);
+  }
+  scratch_end(&scratch);
+#endif
 
-  AST_Node* node       = ArenaPush(parser->arena, AST_Node, 1);
-  node->ast_type       = type;
-  node->token_type     = token.type;
-  node->value          = (token.value.size > 0) ? token.value : Str8("");
+  node->ast_type = node_type;
+  switch (node_type) {
+    case AST_Node_Binary_Op: { node->binary_op = (AST_Binary_Op)variant; }        break;
+    case AST_Node_Unary_Op:  { node->unary_op = (AST_Unary_Op)variant; }          break;
+    case AST_Node_Literal:   { node->literal_type = (AST_Literal_Type)variant; }  break;
+    default: { ERROR_MESSAGE_AND_EXIT("Unhandled node type %s", ast_node_types[node_type]); } break;
+  }
+
   node->children       = ArenaPush(parser->arena, AST_Node*, AST_NODE_MAX_CHILDREN);
   node->children_count = 0;
   return node;
@@ -259,26 +255,26 @@ void ast_print(AST_Node* root, b32 print_whitespace, b32 print_comments) {
 
 void ast_print_node(AST_Node* node, u32 indent, b32 print_whitespace, b32 print_comments) {
   if (!node) return;
-  if ((node->ast_type == Node_Type_Space || node->ast_type == Node_Type_Tab || node->ast_type == Node_Type_New_Line) && !print_whitespace) return;
-  if ((node->ast_type == Node_Type_Line_Comment || node->ast_type == Node_Type_Multi_Line_Comment) && !print_comments) return;
+  if ((node->ast_type == AST_Node_Space || node->ast_type == AST_Node_Tab || node->ast_type == AST_Node_New_Line) && !print_whitespace) return;
+  if ((node->ast_type == AST_Node_Comment_Line || node->ast_type == AST_Node_Comment_Block) && !print_comments) return;
 
   Terminal_Color color = Terminal_Color_Default;
   switch (node->ast_type) {
-    case Node_Type_Space: 
-    case Node_Type_Tab:
-    case Node_Type_New_Line:{
+    case AST_Node_Space: 
+    case AST_Node_Tab:
+    case AST_Node_New_Line:{
       color = Terminal_Color_Gray;
     } break;
 
-    case Node_Type_Line_Comment:
-    case Node_Type_Multi_Line_Comment: {
+    case AST_Node_Comment_Line:
+    case AST_Node_Comment_Block: {
       color = Terminal_Color_Yellow;
     } break;
 
-    case Node_Type_Preprocessor_Define:
-    case Node_Type_Preprocessor_Pragma:
-    case Node_Type_Preprocessor_System_Include:
-    case Node_Type_Preprocessor_Local_Include: {
+    case AST_Node_Preprocessor_Define:
+    case AST_Node_Preprocessor_Pragma:
+    case AST_Node_Preprocessor_Include_System:
+    case AST_Node_Preprocessor_Include_Local: {
       color = Terminal_Color_Magenta;
     } break;
   }
