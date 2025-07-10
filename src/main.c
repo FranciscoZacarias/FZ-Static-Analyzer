@@ -1,6 +1,6 @@
 
 #define DEBUG 1
-#define PRINT_TOKENS 0
+#define PRINT_TOKENS 1
 #include "main.h"
 
 #define WORKSPACE_PATH Str8("C:\\Personal\\FZ-Static-Analyzer\\dummy")
@@ -41,7 +41,7 @@ void entry_point() {
 
     parser_parse_file(&parser);
     printf("\n");
-    ast_print(parser.root, false, true);
+    parser_print_ast(&parser, true, true);
 
 	  printf("\n------------------\n");
 

@@ -229,6 +229,8 @@ typedef enum Token_Type {
 typedef struct Token {
   Token_Type type;
   String8 value;
+  u32 start_offset;
+  u32 end_offset;
 } Token;
 
 typedef struct Token_Array {
@@ -270,18 +272,19 @@ b32 lexer_get_number(Lexer* lexer);
 b32 lexer_get_string(Lexer* lexer);
 b32 lexer_get_character(Lexer* lexer);
 
-Token lexer_make_token_range(Lexer* lexer, Token_Type type, char8* start, char8* end);
-Token lexer_make_token_current(Lexer* lexer, Token_Type type, u32 length);
-Token lexer_is_token_keyword(Token identifier_token); /* Checks if a token is an identifier token is a keyword */
+void lexer_make_token_range(Lexer* lexer, Token_Type type, char8* start, char8* end);
+void lexer_make_token_current(Lexer* lexer, Token_Type type, u32 length);
+Token_Type lexer_is_token_keyword(Token identifier_token); /* Checks if a token is an identifier token is a keyword */
 
 // Manouvering
-char8 lexer_peek(Lexer* lexer, u32 offset);                  /* Returns next character without advancing */
-Token lexer_peek_token(Lexer* lexer, u32 offset);            /* Returns next token without advancing */
-char8 lexer_current(Lexer* lexer);                           /* Returns current character */
-void  lexer_advance(Lexer* lexer);                           /* Advances characters by 1 */
-void  lexer_advance_by(Lexer* lexer, u32 count);             /* Advances characters by count */
-b32   lexer_advance_if_match(Lexer* lexer, char8 expected);  /* Advance if current character matches expected char */
-b32   lexer_is_at_eof(Lexer* lexer);                         /* Checks if lexer is at the end of file */
+char8 lexer_peek(Lexer* lexer, u32 offset);                       /* Returns next character without advancing */
+Token lexer_peek_token(Lexer* lexer, u32 offset);                 /* Returns next token without advancing */
+char8 lexer_current(Lexer* lexer);                                /* Returns current character */
+void  lexer_advance(Lexer* lexer);                                /* Advances characters by 1 */
+void  lexer_advance_by(Lexer* lexer, u32 count);                  /* Advances characters by count */
+b32   lexer_advance_if_match(Lexer* lexer, char8 expected);       /* Advance if current character matches expected char */
+b32   lexer_is_at_eof(Lexer* lexer);                              /* Checks if lexer is at the end of file */
+u32   lexer_get_character_offset(Lexer* lexer, char8* character); /* Returns the offset into the file, of the given character */
 
 // Help
 b32 lexer_print_current_token(Lexer* lexer);

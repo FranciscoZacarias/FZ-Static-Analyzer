@@ -37,7 +37,7 @@ void lexer_get_next_token(Lexer* lexer) {
   MemoryZeroStruct(&lexer->current_token);
 
   if (lexer_is_at_eof(lexer)) {
-    lexer->current_token = (Token){Token_End_Of_File, {0}};
+    lexer_make_token_current(lexer, Token_End_Of_File, 1);
     return;
   }
   
@@ -47,7 +47,7 @@ void lexer_get_next_token(Lexer* lexer) {
   } else if (char8_is_space(c)) {
     lexer_get_whitespace(lexer);
   } else if (c == '#') {
-    lexer->current_token = lexer_make_token_current(lexer, Token_Preprocessor_Hash, 1);
+    lexer_make_token_current(lexer, Token_Preprocessor_Hash, 1);
     lexer_advance(lexer);
   } else if ((c == '/' && (lexer_peek(lexer, 1) == '/' || lexer_peek(lexer, 1) == '*')) || (c == '*' && lexer_peek(lexer, 1) == '/')) {
     lexer_get_comment(lexer);
@@ -63,7 +63,8 @@ void lexer_get_next_token(Lexer* lexer) {
   } else if (lexer_get_delimiter(lexer)) {
   } else if (lexer_get_braces(lexer)) {
   } else {
-    lexer->current_token.type = Token_Unknown;
+    //lexer->current_token.type = Token_Unknown;
+    lexer_make_token_current(lexer, Token_Unknown, 1);
     lexer_advance(lexer);
   }
 
@@ -78,13 +79,13 @@ b32 lexer_get_whitespace(Lexer* lexer) {
   char8 c = lexer_current(lexer);
   
   if (c == ' ') {
-    lexer->current_token = lexer_make_token_current(lexer, Token_Space, 1);
+    lexer_make_token_current(lexer, Token_Space, 1);
     lexer_advance(lexer);
     return true;
   }
   
   if (c == '\t') {
-    lexer->current_token = lexer_make_token_current(lexer, Token_Tab, 1);
+    lexer_make_token_current(lexer, Token_Tab, 1);
     lexer_advance(lexer);
     return true;
   }
@@ -99,7 +100,7 @@ b32 lexer_get_whitespace(Lexer* lexer) {
 
     lexer->line += 1;
     lexer->column = 1;
-    lexer->current_token = lexer_make_token_range(lexer, Token_New_Line, start, lexer->current_character);
+    lexer_make_token_range(lexer, Token_New_Line, start, lexer->current_character);
     return true;
   }
   
@@ -110,21 +111,21 @@ b32 lexer_get_comment(Lexer* lexer) {
   char8 c = lexer_current(lexer);
   
   if (c == '/' && lexer_peek(lexer, 1) == '/') {
-    lexer->current_token = lexer_make_token_current(lexer, Token_Comment_Line, 2);
+    lexer_make_token_current(lexer, Token_Comment_Line, 2);
     lexer_advance_by(lexer, 2);
     return true;
   }
   
   if (c == '/' && lexer_peek(lexer, 1) == '*') {
     char8* start = lexer->current_character;
-    lexer->current_token = lexer_make_token_current(lexer, Token_Comment_Block_Start, 2);
+    lexer_make_token_current(lexer, Token_Comment_Block_Start, 2);
     lexer_advance_by(lexer, 2);
     return true;
   }
   
   if (c == '*' && lexer_peek(lexer, 1) == '/') {
     char8* start = lexer->current_character;
-    lexer->current_token = lexer_make_token_current(lexer, Token_Comment_Block_End, 2);
+    lexer_make_token_current(lexer, Token_Comment_Block_End, 2);
     lexer_advance_by(lexer, 2);
     return true;
   }
@@ -139,157 +140,157 @@ b32 lexer_get_operator(Lexer* lexer) {
   switch (c) {
     case '+':
       if (next == '+') {
-        lexer->current_token = lexer_make_token_current(lexer, Token_Increment, 2);
+        lexer_make_token_current(lexer, Token_Increment, 2);
         lexer_advance_by(lexer, 2);
       } else if (next == '=') {
-        lexer->current_token = lexer_make_token_current(lexer, Token_Plus_Assign, 2);
+        lexer_make_token_current(lexer, Token_Plus_Assign, 2);
         lexer_advance_by(lexer, 2);
       } else {
-        lexer->current_token = lexer_make_token_current(lexer, Token_Plus, 1);
+        lexer_make_token_current(lexer, Token_Plus, 1);
         lexer_advance(lexer);
       }
       return true;
       
     case '-':
       if (next == '-') {
-        lexer->current_token = lexer_make_token_current(lexer, Token_Decrement, 2);
+        lexer_make_token_current(lexer, Token_Decrement, 2);
         lexer_advance_by(lexer, 2);
       } else if (next == '=') {
-        lexer->current_token = lexer_make_token_current(lexer, Token_Minus_Assign, 2);
+        lexer_make_token_current(lexer, Token_Minus_Assign, 2);
         lexer_advance_by(lexer, 2);
       } else if (next == '>') {
-        lexer->current_token = lexer_make_token_current(lexer, Token_Arrow, 2);
+        lexer_make_token_current(lexer, Token_Arrow, 2);
         lexer_advance_by(lexer, 2);
       } else {
-        lexer->current_token = lexer_make_token_current(lexer, Token_Minus, 1);
+        lexer_make_token_current(lexer, Token_Minus, 1);
         lexer_advance(lexer);
       }
       return true;
       
     case '*':
       if (next == '=') {
-        lexer->current_token = lexer_make_token_current(lexer, Token_Multiply_Assign, 2);
+        lexer_make_token_current(lexer, Token_Multiply_Assign, 2);
         lexer_advance_by(lexer, 2);
       } else {
-        lexer->current_token = lexer_make_token_current(lexer, Token_Multiply, 1);
+        lexer_make_token_current(lexer, Token_Multiply, 1);
         lexer_advance(lexer);
       }
       return true;
       
     case '/':
       if (next == '=') {
-        lexer->current_token = lexer_make_token_current(lexer, Token_Divide_Assign, 2);
+        lexer_make_token_current(lexer, Token_Divide_Assign, 2);
         lexer_advance_by(lexer, 2);
       } else {
-        lexer->current_token = lexer_make_token_current(lexer, Token_Divide, 1);
+        lexer_make_token_current(lexer, Token_Divide, 1);
         lexer_advance(lexer);
       }
       return true;
       
     case '%':
       if (next == '=') {
-        lexer->current_token = lexer_make_token_current(lexer, Token_Modulo_Assign, 2);
+        lexer_make_token_current(lexer, Token_Modulo_Assign, 2);
         lexer_advance_by(lexer, 2);
       } else {
-        lexer->current_token = lexer_make_token_current(lexer, Token_Modulo, 1);
+        lexer_make_token_current(lexer, Token_Modulo, 1);
         lexer_advance(lexer);
       }
       return true;
       
     case '=':
       if (next == '=') {
-        lexer->current_token = lexer_make_token_current(lexer, Token_Equal, 2);
+        lexer_make_token_current(lexer, Token_Equal, 2);
         lexer_advance_by(lexer, 2);
       } else {
-        lexer->current_token = lexer_make_token_current(lexer, Token_Assign, 1);
+        lexer_make_token_current(lexer, Token_Assign, 1);
         lexer_advance(lexer);
       }
       return true;
       
     case '!':
       if (next == '=') {
-        lexer->current_token = lexer_make_token_current(lexer, Token_Not_Equal, 2);
+        lexer_make_token_current(lexer, Token_Not_Equal, 2);
         lexer_advance_by(lexer, 2);
       } else {
-        lexer->current_token = lexer_make_token_current(lexer, Token_Not, 1);
+        lexer_make_token_current(lexer, Token_Not, 1);
         lexer_advance(lexer);
       }
       return true;
       
     case '<':
       if (next == '=') {
-        lexer->current_token = lexer_make_token_current(lexer, Token_Less_Equal, 2);
+        lexer_make_token_current(lexer, Token_Less_Equal, 2);
         lexer_advance_by(lexer, 2);
       } else if (next == '<') {
         if (lexer_peek(lexer, 2) == '=') {
-          lexer->current_token = lexer_make_token_current(lexer, Token_Left_Shift_Assign, 3);
+          lexer_make_token_current(lexer, Token_Left_Shift_Assign, 3);
           lexer_advance_by(lexer, 3);
         } else {
-          lexer->current_token = lexer_make_token_current(lexer, Token_Left_Shift, 2);
+          lexer_make_token_current(lexer, Token_Left_Shift, 2);
           lexer_advance_by(lexer, 2);
         }
       } else {
-        lexer->current_token = lexer_make_token_current(lexer, Token_Less, 1);
+        lexer_make_token_current(lexer, Token_Less, 1);
         lexer_advance(lexer);
       }
       return true;
       
     case '>':
       if (next == '=') {
-        lexer->current_token = lexer_make_token_current(lexer, Token_Greater_Equal, 2);
+        lexer_make_token_current(lexer, Token_Greater_Equal, 2);
         lexer_advance_by(lexer, 2);
       } else if (next == '>') {
         if (lexer_peek(lexer, 2) == '=') {
-          lexer->current_token = lexer_make_token_current(lexer, Token_Right_Shift_Assign, 3);
+          lexer_make_token_current(lexer, Token_Right_Shift_Assign, 3);
           lexer_advance_by(lexer, 3);
         } else {
-          lexer->current_token = lexer_make_token_current(lexer, Token_Right_Shift, 2);
+          lexer_make_token_current(lexer, Token_Right_Shift, 2);
           lexer_advance_by(lexer, 2);
         }
       } else {
-        lexer->current_token = lexer_make_token_current(lexer, Token_Greater, 1);
+        lexer_make_token_current(lexer, Token_Greater, 1);
         lexer_advance(lexer);
       }
       return true;
       
     case '&':
       if (next == '&') {
-        lexer->current_token = lexer_make_token_current(lexer, Token_Logical_And, 2);
+        lexer_make_token_current(lexer, Token_Logical_And, 2);
         lexer_advance_by(lexer, 2);
       } else if (next == '=') {
-        lexer->current_token = lexer_make_token_current(lexer, Token_Bit_And_Assign, 2);
+        lexer_make_token_current(lexer, Token_Bit_And_Assign, 2);
         lexer_advance_by(lexer, 2);
       } else {
-        lexer->current_token = lexer_make_token_current(lexer, Token_Bit_And, 1);
+        lexer_make_token_current(lexer, Token_Bit_And, 1);
         lexer_advance(lexer);
       }
       return true;
       
     case '|':
       if (next == '|') {
-        lexer->current_token = lexer_make_token_current(lexer, Token_Logical_Or, 2);
+        lexer_make_token_current(lexer, Token_Logical_Or, 2);
         lexer_advance_by(lexer, 2);
       } else if (next == '=') {
-        lexer->current_token = lexer_make_token_current(lexer, Token_Bit_Or_Assign, 2);
+        lexer_make_token_current(lexer, Token_Bit_Or_Assign, 2);
         lexer_advance_by(lexer, 2);
       } else {
-        lexer->current_token = lexer_make_token_current(lexer, Token_Bit_Or, 1);
+        lexer_make_token_current(lexer, Token_Bit_Or, 1);
         lexer_advance(lexer);
       }
       return true;
       
     case '^':
       if (next == '=') {
-        lexer->current_token = lexer_make_token_current(lexer, Token_Bit_Xor_Assign, 2);
+        lexer_make_token_current(lexer, Token_Bit_Xor_Assign, 2);
         lexer_advance_by(lexer, 2);
       } else {
-        lexer->current_token = lexer_make_token_current(lexer, Token_Bit_Xor, 1);
+        lexer_make_token_current(lexer, Token_Bit_Xor, 1);
         lexer_advance(lexer);
       }
       return true;
       
     case '~':
-      lexer->current_token = lexer_make_token_current(lexer, Token_Bit_Not, 1);
+      lexer_make_token_current(lexer, Token_Bit_Not, 1);
       lexer_advance(lexer);
       return true;
   }
@@ -302,23 +303,23 @@ b32 lexer_get_delimiter(Lexer* lexer) {
   
   switch (c) {
     case ';':
-      lexer->current_token = lexer_make_token_current(lexer, Token_Semicolon, 1);
+      lexer_make_token_current(lexer, Token_Semicolon, 1);
       lexer_advance(lexer);
       return true;
     case ',':
-      lexer->current_token = lexer_make_token_current(lexer, Token_Comma, 1);
+      lexer_make_token_current(lexer, Token_Comma, 1);
       lexer_advance(lexer);
       return true;
     case '.':
-      lexer->current_token = lexer_make_token_current(lexer, Token_Dot, 1);
+      lexer_make_token_current(lexer, Token_Dot, 1);
       lexer_advance(lexer);
       return true;
     case ':':
-      lexer->current_token = lexer_make_token_current(lexer, Token_Colon, 1);
+      lexer_make_token_current(lexer, Token_Colon, 1);
       lexer_advance(lexer);
       return true;
     case '?':
-      lexer->current_token = lexer_make_token_current(lexer, Token_Question, 1);
+      lexer_make_token_current(lexer, Token_Question, 1);
       lexer_advance(lexer);
       return true;
   }
@@ -331,27 +332,27 @@ b32 lexer_get_braces(Lexer* lexer) {
   
   switch (c) {
     case '(':
-      lexer->current_token = lexer_make_token_current(lexer, Token_Open_Parenthesis, 1);
+      lexer_make_token_current(lexer, Token_Open_Parenthesis, 1);
       lexer_advance(lexer);
       return true;
     case ')':
-      lexer->current_token = lexer_make_token_current(lexer, Token_Close_Parenthesis, 1);
+      lexer_make_token_current(lexer, Token_Close_Parenthesis, 1);
       lexer_advance(lexer);
       return true;
     case '{':
-      lexer->current_token = lexer_make_token_current(lexer, Token_Open_Brace, 1);
+      lexer_make_token_current(lexer, Token_Open_Brace, 1);
       lexer_advance(lexer);
       return true;
     case '}':
-      lexer->current_token = lexer_make_token_current(lexer, Token_Close_Brace, 1);
+      lexer_make_token_current(lexer, Token_Close_Brace, 1);
       lexer_advance(lexer);
       return true;
     case '[':
-      lexer->current_token = lexer_make_token_current(lexer, Token_Open_Bracket, 1);
+      lexer_make_token_current(lexer, Token_Open_Bracket, 1);
       lexer_advance(lexer);
       return true;
     case ']':
-      lexer->current_token = lexer_make_token_current(lexer, Token_Close_Bracket, 1);
+      lexer_make_token_current(lexer, Token_Close_Bracket, 1);
       lexer_advance(lexer);
       return true;
   }
@@ -362,7 +363,7 @@ b32 lexer_get_braces(Lexer* lexer) {
 b32 lexer_get_identifier_or_keyword(Lexer* lexer) {
   char8 c = lexer_current(lexer);
   
-  if (!char8_is_alpha(c) && c != '_')  return false;
+  if (!char8_is_alpha(c) && c != '_') return false;
   
   char8* start = lexer->current_character;
   
@@ -370,13 +371,11 @@ b32 lexer_get_identifier_or_keyword(Lexer* lexer) {
     lexer_advance(lexer);
   }
   
-  Token identifier = lexer_make_token_range(lexer, Token_Identifier, start, lexer->current_character);
-  Token keyword_check = lexer_is_token_keyword(identifier);
+  lexer_make_token_range(lexer, Token_Identifier, start, lexer->current_character);
   
-  if (keyword_check.type != Token_Identifier) {
-    lexer->current_token = keyword_check;
-  } else {
-    lexer->current_token = identifier;
+  Token_Type keyword_type = lexer_is_token_keyword(lexer->current_token);
+  if (keyword_type != Token_Identifier) {
+    lexer->current_token.type = keyword_type;
   }
   
   return true;
@@ -437,7 +436,7 @@ b32 lexer_get_number(Lexer* lexer) {
     }
   }
   
-  lexer->current_token = lexer_make_token_range(lexer, Token_Number, start, lexer->current_character);
+  lexer_make_token_range(lexer, Token_Number, start, lexer->current_character);
   return true;
 }
 
@@ -464,7 +463,7 @@ b32 lexer_get_string(Lexer* lexer) {
     lexer_advance(lexer); // Skip closing quote
   }
   
-  lexer->current_token = lexer_make_token_range(lexer, Token_String_Literal, start, lexer->current_character);
+  lexer_make_token_range(lexer, Token_String_Literal, start, lexer->current_character);
   return true;
 }
 
@@ -491,66 +490,70 @@ b32 lexer_get_character(Lexer* lexer) {
     lexer_advance(lexer); // Skip closing quote
   }
   
-  lexer->current_token = lexer_make_token_range(lexer, Token_Char, start, lexer->current_character);
+  lexer_make_token_range(lexer, Token_Char, start, lexer->current_character);
   return true;
 }
 
-Token lexer_make_token_range(Lexer* lexer, Token_Type type, char8* start, char8* end) {
-  Token token;
-  token.type       = type;
-  token.value.str  = start;
-  token.value.size = (u32)(end - start);
-  return token;
+void lexer_make_token_range(Lexer* lexer, Token_Type type, char8* start, char8* end) {
+  lexer->current_token.type         = type;
+  lexer->current_token.value.str    = start;
+  lexer->current_token.value.size   = (u32)(end - start);
+  lexer->current_token.start_offset = lexer_get_character_offset(lexer, start);
+  lexer->current_token.end_offset   = lexer_get_character_offset(lexer, end);
 }
 
-Token lexer_make_token_current(Lexer* lexer, Token_Type type, u32 length) {
-  Token token;
-  token.type       = type;
-  token.value.str  = lexer->current_character;
-  token.value.size = length;
-  return token;
+void lexer_make_token_current(Lexer* lexer, Token_Type type, u32 length) {
+  lexer->current_token.type         = type;
+  lexer->current_token.value.str    = lexer->current_character;
+  lexer->current_token.value.size   = length;
+  lexer->current_token.start_offset = lexer_get_character_offset(lexer, lexer->current_character);
+  lexer->current_token.end_offset   = lexer_get_character_offset(lexer, lexer->current_character + length - 1);
 }
 
-Token lexer_is_token_keyword(Token identifier_token) {
+Token_Type lexer_is_token_keyword(Token identifier_token) {
   String8 value = identifier_token.value;
   
-  if (string8_equal(value, Str8("return")))    return (Token){Token_Keyword_Return,   value};
-  if (string8_equal(value, Str8("if")))        return (Token){Token_Keyword_If,       value};
-  if (string8_equal(value, Str8("else")))      return (Token){Token_Keyword_Else,     value};
-  if (string8_equal(value, Str8("while")))     return (Token){Token_Keyword_While,    value};
-  if (string8_equal(value, Str8("for")))       return (Token){Token_Keyword_For,      value};
-  if (string8_equal(value, Str8("break")))     return (Token){Token_Keyword_Break,    value};
-  if (string8_equal(value, Str8("continue")))  return (Token){Token_Keyword_Continue, value};
-  if (string8_equal(value, Str8("struct")))    return (Token){Token_Keyword_Struct,   value};
-  if (string8_equal(value, Str8("union")))     return (Token){Token_Keyword_Union,    value};
-  if (string8_equal(value, Str8("enum")))      return (Token){Token_Keyword_Enum,     value};
-  if (string8_equal(value, Str8("typedef")))   return (Token){Token_Keyword_Typedef,  value};
-  if (string8_equal(value, Str8("static")))    return (Token){Token_Keyword_Static,   value};
-  if (string8_equal(value, Str8("void")))      return (Token){Token_Keyword_Void,     value};
-  if (string8_equal(value, Str8("int")))       return (Token){Token_Keyword_Int,      value};
-  if (string8_equal(value, Str8("char")))      return (Token){Token_Keyword_Char,     value};
-  if (string8_equal(value, Str8("float")))     return (Token){Token_Keyword_Float,    value};
-  if (string8_equal(value, Str8("double")))    return (Token){Token_Keyword_Double,   value};
-  if (string8_equal(value, Str8("unsigned")))  return (Token){Token_Keyword_Unsigned, value};
-  if (string8_equal(value, Str8("signed")))    return (Token){Token_Keyword_Signed,   value};
-  if (string8_equal(value, Str8("const")))     return (Token){Token_Keyword_Const,    value};
-  if (string8_equal(value, Str8("extern")))    return (Token){Token_Keyword_Extern,   value};
-  if (string8_equal(value, Str8("switch")))    return (Token){Token_Keyword_Switch,   value};
-  if (string8_equal(value, Str8("case")))      return (Token){Token_Keyword_Case,     value};
-  if (string8_equal(value, Str8("default")))   return (Token){Token_Keyword_Default,  value};
-  if (string8_equal(value, Str8("sizeof")))    return (Token){Token_Keyword_Sizeof,   value};
-  if (string8_equal(value, Str8("inline")))    return (Token){Token_Keyword_Inline,   value};
-  if (string8_equal(value, Str8("do")))        return (Token){Token_Keyword_Do,       value};
-  if (string8_equal(value, Str8("goto")))      return (Token){Token_Keyword_Goto,     value};
-  if (string8_equal(value, Str8("restrict")))  return (Token){Token_Keyword_Restrict, value};
-  if (string8_equal(value, Str8("volatile")))  return (Token){Token_Keyword_Volatile, value};
-  if (string8_equal(value, Str8("register")))  return (Token){Token_Keyword_Register, value};
+  if (string8_equal(value, Str8("return")))    return Token_Keyword_Return;
+  if (string8_equal(value, Str8("if")))        return Token_Keyword_If;
+  if (string8_equal(value, Str8("else")))      return Token_Keyword_Else;
+  if (string8_equal(value, Str8("while")))     return Token_Keyword_While;
+  if (string8_equal(value, Str8("for")))       return Token_Keyword_For;
+  if (string8_equal(value, Str8("break")))     return Token_Keyword_Break;
+  if (string8_equal(value, Str8("continue")))  return Token_Keyword_Continue;
+  if (string8_equal(value, Str8("struct")))    return Token_Keyword_Struct;
+  if (string8_equal(value, Str8("union")))     return Token_Keyword_Union;
+  if (string8_equal(value, Str8("enum")))      return Token_Keyword_Enum;
+  if (string8_equal(value, Str8("typedef")))   return Token_Keyword_Typedef;
+  if (string8_equal(value, Str8("static")))    return Token_Keyword_Static;
+  if (string8_equal(value, Str8("void")))      return Token_Keyword_Void;
+  if (string8_equal(value, Str8("int")))       return Token_Keyword_Int;
+  if (string8_equal(value, Str8("char")))      return Token_Keyword_Char;
+  if (string8_equal(value, Str8("float")))     return Token_Keyword_Float;
+  if (string8_equal(value, Str8("double")))    return Token_Keyword_Double;
+  if (string8_equal(value, Str8("unsigned")))  return Token_Keyword_Unsigned;
+  if (string8_equal(value, Str8("signed")))    return Token_Keyword_Signed;
+  if (string8_equal(value, Str8("const")))     return Token_Keyword_Const;
+  if (string8_equal(value, Str8("extern")))    return Token_Keyword_Extern;
+  if (string8_equal(value, Str8("switch")))    return Token_Keyword_Switch;
+  if (string8_equal(value, Str8("case")))      return Token_Keyword_Case;
+  if (string8_equal(value, Str8("default")))   return Token_Keyword_Default;
+  if (string8_equal(value, Str8("sizeof")))    return Token_Keyword_Sizeof;
+  if (string8_equal(value, Str8("inline")))    return Token_Keyword_Inline;
+  if (string8_equal(value, Str8("do")))        return Token_Keyword_Do;
+  if (string8_equal(value, Str8("goto")))      return Token_Keyword_Goto;
+  if (string8_equal(value, Str8("restrict")))  return Token_Keyword_Restrict;
+  if (string8_equal(value, Str8("volatile")))  return Token_Keyword_Volatile;
+  if (string8_equal(value, Str8("register")))  return Token_Keyword_Register;
     
-  return identifier_token;
+  return Token_Identifier;
 }
 
 b32 lexer_is_at_eof(Lexer* lexer) {
   return lexer->current_character >= lexer->file_end;
+}
+
+u32 lexer_get_character_offset(Lexer* lexer, char8* character) {
+  return (u32)(character - lexer->file_start);
 }
 
 char8 lexer_peek(Lexer* lexer, u32 offset) {
@@ -628,9 +631,15 @@ b32 lexer_print_current_token(Lexer* lexer) {
 
   // Print token value if it has one (non-empty string)
   if (lexer->current_token.value.size > 0 && lexer->current_token.value.str) {
-    if (lexer->current_token.type != Token_Space && lexer->current_token.type != Token_Tab && lexer->current_token.type != Token_New_Line) {
-      printf("Token value: %.*s", (s32)lexer->current_token.value.size, lexer->current_token.value.str);
+    if (lexer->current_token.type == Token_New_Line) {
+      printf("Token value: '\\n'");
+    } else {
+      printf("Token value: '%.*s'", (s32)lexer->current_token.value.size, lexer->current_token.value.str);
     }
+    for (u32 i = lexer->current_token.value.size; i < 16; i += 1) {
+      printf(" ");
+    }
+    printf("StartEnd: [%d, %d]", lexer->current_token.start_offset, lexer->current_token.end_offset);
   }
   printf("\n");
 

@@ -19,3 +19,6 @@ Static Analysis Features:
 [ ] No tabs
 [ ] Remove leading spaces
 [ ] Functions must be labeled as internal
+
+fz_std:
+[ ] Macro to reallocate data into arenas
