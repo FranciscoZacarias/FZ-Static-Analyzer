@@ -43,7 +43,7 @@ void parser_parse_whitespace(Parser* parser, AST_Node* parent) {
   u32 start_offset = first_token.start_offset;
   u32 end_offset   = first_token.end_offset;
   
-  parser_advance(parser);
+  //parser_advance(parser);
   
   // Consume consecutive tokens of same type
   while (parser->lexer->current_token.type == first_token.type) {
@@ -275,7 +275,8 @@ void parser_print_ast_node(Parser* parser, AST_Node* node, u32 indent, b32 print
     printf("  ");
   }
   
-  printf_color(color, "%s: '%.*s'", ast_node_types[node->type], node->start_offset - node->end_offset, parser->lexer->file.data.str + node->start_offset);
+  u32 size = node->end_offset - node->start_offset;
+  printf_color(color, "{%s, %d}: '%.*s'", ast_node_types[node->type], size, size, (node->type != AST_Node_New_Line) ? (parser->lexer->file.data.str + node->start_offset) : "\\n");
   printf("\n");
   
   for (u32 i = 0; i < node->children_count; i += 1) {

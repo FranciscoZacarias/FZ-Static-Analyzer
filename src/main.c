@@ -4,7 +4,7 @@
 #define FZ_ENABLE_ASSERT 1 
 #include "main.h"
 
-#define WORKSPACE_PATH Str8("C:\\Personal\\FZ-Static-Analyzer\\dummy")
+#define WORKSPACE_PATH Str8("D:\\work\\FZ-Static-Analyzer\\dummy")
 
 void entry_point() {
   Arena* arena = arena_init();
@@ -20,7 +20,7 @@ void entry_point() {
     if (string8_find_last(current_file->value.path, Str8("\\"), &index) && index+1 <= current_file->value.path.size-1) {
       String8 file_string8 = string8_slice(current_file->value.path, index+1, current_file->value.path.size);
 
-      if (!string8_equal(file_string8, Str8("comments_whitespace.c"))) {
+      if (!string8_equal(file_string8, Str8("expressions.c"))) {
         current_file = current_file->next;
         continue;
       }
@@ -40,10 +40,9 @@ void entry_point() {
     Parser parser;
     parser_init(&parser, &lexer);
 
-    
     parser_parse_file(&parser);
     printf("\n");
-    //parser_print_ast(&parser, true, true);
+    parser_print_ast(&parser, true, true);
 
 	  printf("\n------------------\n");
 

@@ -507,7 +507,7 @@ void lexer_make_token_current(Lexer* lexer, Token_Type type, u32 length) {
   lexer->current_token.value.str    = lexer->current_character;
   lexer->current_token.value.size   = length;
   lexer->current_token.start_offset = lexer_get_character_offset(lexer, lexer->current_character);
-  lexer->current_token.end_offset   = lexer_get_character_offset(lexer, lexer->current_character + length - 1);
+  lexer->current_token.end_offset   = lexer_get_character_offset(lexer, lexer->current_character + length);
 }
 
 Token_Type lexer_is_token_keyword(Token identifier_token) {
