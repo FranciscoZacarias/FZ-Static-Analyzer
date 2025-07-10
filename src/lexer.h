@@ -120,9 +120,11 @@ typedef enum Token_Type {
 
   // Literals
   Token_Identifier,
-  Token_Number,
+  Token_Int_Literal,
+  Token_Float_Literal,
+  Token_Hex_Literal,
   Token_String_Literal,
-  Token_Char,
+  Token_Char_Literal,
 
   // Keywords
   Token_Keyword_Return,

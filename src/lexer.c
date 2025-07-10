@@ -389,6 +389,7 @@ b32 lexer_get_number(Lexer* lexer) {
   }
   
   char8* start = lexer->current_character;
+  Token_Type token_type = Token_Int_Literal;
   
   // Handle hex numbers
   if (c == '0' && (lexer_peek(lexer, 1) == 'x' || lexer_peek(lexer, 1) == 'X')) {
@@ -396,6 +397,7 @@ b32 lexer_get_number(Lexer* lexer) {
     while (isxdigit(lexer_current(lexer))) {
       lexer_advance(lexer);
     }
+    token_type = Token_Hex_Literal;
   } else {
     // Handle decimal numbers
     while (isdigit(lexer_current(lexer))) {
@@ -408,6 +410,7 @@ b32 lexer_get_number(Lexer* lexer) {
       while (isdigit(lexer_current(lexer))) {
         lexer_advance(lexer);
       }
+      token_type = Token_Float_Literal;
     }
     
     // Handle scientific notation
@@ -419,13 +422,16 @@ b32 lexer_get_number(Lexer* lexer) {
       while (isdigit(lexer_current(lexer))) {
         lexer_advance(lexer);
       }
+      token_type = Token_Float_Literal;
     }
   }
   
-  // Handle suffixes (f, F, l, L, u, U, etc.)
+  // Handle suffixes
   char8 suffix = lexer_current(lexer);
-  if (suffix == 'f' || suffix == 'F' || suffix == 'l' || suffix == 'L' || 
-      suffix == 'u' || suffix == 'U') {
+  if (suffix == 'f' || suffix == 'F') {
+    lexer_advance(lexer);
+    token_type = Token_Float_Literal;
+  } else if (suffix == 'l' || suffix == 'L' || suffix == 'u' || suffix == 'U') {
     lexer_advance(lexer);
     // Handle UL, LU combinations
     char8 next_suffix = lexer_current(lexer);
@@ -436,9 +442,10 @@ b32 lexer_get_number(Lexer* lexer) {
     }
   }
   
-  lexer_make_token_range(lexer, Token_Number, start, lexer->current_character);
+  lexer_make_token_range(lexer, token_type, start, lexer->current_character);
   return true;
 }
+
 
 b32 lexer_get_string(Lexer* lexer) {
   if (lexer_current(lexer) != '"') {
@@ -490,7 +497,7 @@ b32 lexer_get_character(Lexer* lexer) {
     lexer_advance(lexer); // Skip closing quote
   }
   
-  lexer_make_token_range(lexer, Token_Char, start, lexer->current_character);
+  lexer_make_token_range(lexer, Token_Char_Literal, start, lexer->current_character);
   return true;
 }
 

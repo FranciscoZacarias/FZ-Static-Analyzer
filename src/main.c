@@ -5,6 +5,7 @@
 #include "main.h"
 
 #define WORKSPACE_PATH Str8("D:\\work\\FZ-Static-Analyzer\\dummy")
+#define TEST_FILE Str8("expressions_easy.c")
 
 void entry_point() {
   Arena* arena = arena_init();
@@ -20,7 +21,7 @@ void entry_point() {
     if (string8_find_last(current_file->value.path, Str8("\\"), &index) && index+1 <= current_file->value.path.size-1) {
       String8 file_string8 = string8_slice(current_file->value.path, index+1, current_file->value.path.size);
 
-      if (!string8_equal(file_string8, Str8("expressions.c"))) {
+      if (!string8_equal(file_string8, TEST_FILE)) {
         current_file = current_file->next;
         continue;
       }

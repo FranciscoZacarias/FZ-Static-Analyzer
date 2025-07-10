@@ -1,9 +1,6 @@
 #ifndef PARSER_H
 #define PARSER_H
 
-///////////////
-// AST
-
 static const char8* ast_node_types [] = {
   "AST_Node_Unknown",
   "AST_Node_Program",
@@ -184,7 +181,12 @@ b32       parser_parse_preprocessor_directives(Parser* parser);
 b32       parser_parse_typedef(Parser* parser);
 b32       parser_parse_function_definition(Parser* parser);
 b32       parser_parse_declaration(Parser* parser);
+b32       parser_parse_variable_declaration(Parser* parse);
 
+// Expression
+internal AST_Node* parser_parse_expression(Parser* parser);
+
+// AST
 AST_Node* ast_node_new(Parser* parser, u32 start_offset, u32 end_offset, AST_Node_Type type);
 void      ast_node_add_child(Parser* parser, AST_Node* parent, AST_Node* child);
 

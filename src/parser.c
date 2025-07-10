@@ -43,8 +43,6 @@ void parser_parse_whitespace(Parser* parser, AST_Node* parent) {
   u32 start_offset = first_token.start_offset;
   u32 end_offset   = first_token.end_offset;
   
-  //parser_advance(parser);
-  
   // Consume consecutive tokens of same type
   while (parser->lexer->current_token.type == first_token.type) {
     end_offset = parser->lexer->current_token.end_offset;
@@ -77,11 +75,6 @@ b32 parser_is_token_datatype(Parser* parser) {
                  token.type == Token_Keyword_Signed   ||
                  token.type == Token_Keyword_Unsigned ||
                  token.type == Token_Keyword_Void);
-  return result;
-}
-
-AST_Node* parser_parse_expression(Parser* parser) {
-  AST_Node* result = NULL;
   return result;
 }
 
@@ -201,13 +194,129 @@ b32 parser_parse_typedef(Parser* parser) {
   b32 result = false;
   return result;
 }
+
 b32 parser_parse_function_definition(Parser* parser) {
   b32 result = false;
   return result;
 }
+
 b32 parser_parse_declaration(Parser* parser) {
   b32 result = false;
+
+  // Try variable declaration first
+  if (parser_parse_variable_declaration(parser)) {
+    result = true;
+  }
+ 
+  // TODO: Add other declaration types here
+  // if (parser_parse_struct_declaration(parser)) return true;
+  // if (parser_parse_union_declaration(parser)) return true;
+  // if (parser_parse_enum_declaration(parser)) return true;
+ 
   return result;
+}
+
+b32 parser_parse_variable_declaration(Parser* parser) {
+  b32 result = false;
+
+  if (!parser_is_token_datatype(parser)) {
+    return false;
+  }
+ 
+  u32 start_offset = parser->lexer->current_token.start_offset;
+  Token type_token = parser->lexer->current_token;
+  parser_advance(parser);
+  parser_parse_whitespace(parser, parser->root); // TODO(fz): Root might be wrong? Maybe not.
+ 
+  // Handle pointer declarators
+  while (parser->lexer->current_token.type == Token_Multiply) {
+    parser_advance(parser);
+    parser_parse_whitespace(parser, parser->root); // TODO(fz): Root might be wrong? Maybe not.
+  }
+ 
+  if (parser->lexer->current_token.type != Token_Identifier) return false;
+ 
+  Token identifier_token = parser->lexer->current_token;
+  parser_advance(parser);
+  parser_parse_whitespace(parser, parser->root); // TODO(fz): Root might be wrong? Maybe not.
+
+  u32 end_offset = identifier_token.end_offset;
+ 
+  // Optional initializer
+  AST_Node* init_expr = NULL;
+  if (parser->lexer->current_token.type == Token_Assign) {
+    parser_advance(parser);
+    parser_parse_whitespace(parser, parser->root); // TODO(fz): Root might be wrong? Maybe not.
+    init_expr = parser_parse_expression(parser);
+    if (!init_expr) {
+      parser->error.has_error = true;
+      parser->error.message = Str8("Expected expression after '='");
+      return false;
+    }
+    end_offset = init_expr->end_offset;
+  }
+ 
+  if (!parser_expect_token(parser, Token_Semicolon)) {
+    parser->error.has_error = true;
+    parser->error.message = Str8("Expected ';' after variable declaration");
+    return false;
+  }
+ 
+  end_offset = parser->lexer->current_token.end_offset - 1; // Before semicolon
+ 
+  // Create AST node
+  AST_Node* decl_node = ast_node_new(parser, start_offset, end_offset, AST_Node_Declaration);
+ 
+  // Add type as child
+  AST_Node* type_node = ast_node_new(parser, type_token.start_offset, type_token.end_offset, AST_Node_Identifier);
+  ast_node_add_child(parser, decl_node, type_node);
+ 
+  // Add identifier as child
+  AST_Node* id_node = ast_node_new(parser, identifier_token.start_offset, identifier_token.end_offset, AST_Node_Identifier);
+  ast_node_add_child(parser, decl_node, id_node);
+ 
+  // Add initializer if present
+  if (init_expr) {
+    ast_node_add_child(parser, decl_node, init_expr);
+  }
+ 
+  ast_node_add_child(parser, parser->root, decl_node);
+  return true;
+}
+
+internal AST_Node* parser_parse_expression(Parser* parser) {
+  return NULL;
+}
+
+internal AST_Node_Type token_to_binary_node_type(Token_Type type) {
+  switch (type) {
+    case Token_Plus:            return AST_Node_Add;
+    case Token_Minus:           return AST_Node_Sub;
+    case Token_Multiply:        return AST_Node_Mul;
+    case Token_Divide:          return AST_Node_Div;
+    case Token_Modulo:          return AST_Node_Mod;
+    case Token_Assign:          return AST_Node_Assign;
+    case Token_Plus_Assign:     return AST_Node_Add_Assign;
+    case Token_Minus_Assign:    return AST_Node_Sub_Assign;
+    case Token_Multiply_Assign: return AST_Node_Mul_Assign;
+    case Token_Divide_Assign:   return AST_Node_Div_Assign;
+    case Token_Modulo_Assign:   return AST_Node_Mod_Assign;
+    case Token_Equal:           return AST_Node_Equal;
+    case Token_Not_Equal:       return AST_Node_Not_Equal;
+    case Token_Less:            return AST_Node_Less;
+    case Token_Less_Equal:      return AST_Node_Less_Equal;
+    case Token_Greater:         return AST_Node_Greater;
+    case Token_Greater_Equal:   return AST_Node_Greater_Equal;
+    case Token_Logical_And:     return AST_Node_Logical_And;
+    case Token_Logical_Or:      return AST_Node_Logical_Or;
+    case Token_Bit_And:         return AST_Node_Bit_And;
+    case Token_Bit_Or:          return AST_Node_Bit_Or;
+    case Token_Bit_Xor:         return AST_Node_Bit_Xor;
+    case Token_Left_Shift:      return AST_Node_Left_Shift;
+    case Token_Right_Shift:     return AST_Node_Right_Shift;
+    case Token_Comma:           return AST_Node_Comma;
+    default:                    return AST_Node_Unknown;
+  }
 }
 
 ///////////////
