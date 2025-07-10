@@ -629,6 +629,8 @@ b32 lexer_print_current_token(Lexer* lexer) {
     printf(" ");
   }
 
+  Assert(lexer->current_token.start_offset + lexer->current_token.value.size == lexer->current_token.end_offset);
+
   // Print token value if it has one (non-empty string)
   if (lexer->current_token.value.size > 0 && lexer->current_token.value.str) {
     if (lexer->current_token.type == Token_New_Line) {
