@@ -191,6 +191,7 @@ internal AST_Node* parser_parse_expression(Parser* parser);
 // AST
 AST_Node* ast_node_new(Parser* parser, u32 start_offset, u32 end_offset, AST_Node_Type type);
 void      ast_node_add_child(Parser* parser, AST_Node* parent, AST_Node* child);
+AST_Node* ast_make_binary(Parser* parser, AST_Node* parent, AST_Node* left, AST_Node* right);
 
 void parser_print_ast(Parser* parser, b32 print_whitespace, b32 print_comments);
 void parser_print_ast_node(Parser* parser, AST_Node* node, u32 indent, b32 print_whitespace, b32 print_comments);

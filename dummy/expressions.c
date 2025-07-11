@@ -1,6 +1,7 @@
 // Basic literals and arithmetic
-int declaration;
+int basic = 1 + 2;
 int a = 1 + 2 * 3;
+int declaration;
 int b = (4 + 5) * 6;
 int c = -a + ~b;
 int d = a < b && b != c || c >= d;

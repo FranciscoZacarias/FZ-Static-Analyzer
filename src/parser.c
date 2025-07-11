@@ -221,33 +221,16 @@ b32 parser_parse_variable_declaration(Parser* parser) {
 
     // TODO(fz): This is where we parse the expression.
     // Right now we just take the full string value.
-    // init_expr = parser_parse_expression(parser);
-    {
-      // Temporary scope. Remove all.
-      u32 expr_start = parser->lexer->current_token.start_offset;
-      while (parser->lexer->current_token.type != Token_Semicolon) {
-        parser_advance(parser);
-        parser_parse_whitespace(parser, parser->root); // TODO(fz): Root might be wrong? Maybe not.
-      }
-      u32 expr_end = parser->lexer->current_token.end_offset - 1;
-      init_expr = ast_node_new(parser, expr_start, expr_end, AST_Node_Assign);
-    }
-
-    if (!init_expr) {
-      parser->error.has_error = true;
-      parser->error.message = Str8("Expected expression after '='");
-      return false;
-    }
-    end_offset = init_expr->end_offset;
+    init_expr = parser_parse_expression(parser);
   }
- 
+
   if (!parser_expect_token(parser, Token_Semicolon)) {
     parser->error.has_error = true;
     parser->error.message = Str8("Expected ';' after variable declaration");
     return false;
   }
  
-  end_offset = parser->lexer->current_token.end_offset - 1; // Before semicolon
+  end_offset = parser->lexer->current_token.end_offset;
  
   // Create AST node
   AST_Node* declaration_node = ast_node_new(parser, start_offset, end_offset, AST_Node_Declaration);
@@ -270,7 +253,9 @@ b32 parser_parse_variable_declaration(Parser* parser) {
 }
 
 internal AST_Node* parser_parse_expression(Parser* parser) {
-  return NULL;
+  AST_Node* result = NULL;
+
+  return result;
 }
 
 internal AST_Node_Type token_to_binary_node_type(Token_Type type) {
@@ -307,6 +292,7 @@ internal AST_Node_Type token_to_binary_node_type(Token_Type type) {
 ///////////////
 // AST
 
+// TODO(fz): Change arg parser for Arena*
 AST_Node* ast_node_new(Parser* parser, u32 start_offset, u32 end_offset, AST_Node_Type type) {
   AST_Node* node       = arena_push(parser->arena, sizeof(AST_Node));
   node->start_offset   = start_offset;
@@ -333,6 +319,12 @@ void ast_node_add_child(Parser* parser, AST_Node* parent, AST_Node* child) {
   }
   
   parent->children[parent->children_count++] = child;
+}
+
+AST_Node* ast_make_binary(Parser* parser, AST_Node* parent, AST_Node* left, AST_Node* right) {
+  ast_node_add_child(parser, parent, left);
+  ast_node_add_child(parser, parent, right);
+  return parent;
 }
 
 void parser_print_ast(Parser* parser, b32 print_whitespace, b32 print_comments) {
