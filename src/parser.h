@@ -168,30 +168,22 @@ typedef struct Parser {
 
 void      parser_init(Parser* parser, Lexer* lexer);
 AST_Node* parser_parse_file(Parser* parser);
+void      parser_advance(Parser* parser, AST_Node* parent); /* Advances tokens by 1. Parses whitespace ahead */
 
-void parser_advance(Parser* parser); /* Advances lexer's tokens by 1 */
+b32   parser_parse_declaration(Parser* parser);
+b32   parser_parse_variable_declaration(Parser* parse);
 
-b32 parser_expect_token(Parser* parser, Token_Type expected);
-b32 parser_is_token_datatype(Parser* parser);
-
-// Parse functions
-AST_Node* parser_parse_expression(Parser* parser);
-void      parser_parse_whitespace(Parser* parser, AST_Node* parent);
-b32       parser_parse_comment_line(Parser* parser);
-b32       parser_parse_comment_block(Parser* parser);
-b32       parser_parse_preprocessor_directives(Parser* parser);
-b32       parser_parse_typedef(Parser* parser);
-b32       parser_parse_function_definition(Parser* parser);
-b32       parser_parse_declaration(Parser* parser);
-b32       parser_parse_variable_declaration(Parser* parse);
+void  parser_parse_whitespace(Parser* parser, AST_Node* parent);
+b32   parser_parse_comment_line(Parser* parser, AST_Node* parent);
+b32   parser_parse_comment_block(Parser* parser, AST_Node* parent);
 
 // Expression
-internal AST_Node* parser_parse_expression(Parser* parser);
+AST_Node* parser_parse_expression(Parser* parser);
 
 // AST
-AST_Node* ast_node_new(Parser* parser, u32 start_offset, u32 end_offset, AST_Node_Type type);
-void      ast_node_add_child(Parser* parser, AST_Node* parent, AST_Node* child);
-AST_Node* ast_make_binary(Parser* parser, AST_Node* parent, AST_Node* left, AST_Node* right);
+AST_Node* ast_node_new(Arena* arena, u32 start_offset, u32 end_offset, AST_Node_Type type);
+void      ast_node_add_child(Arena* arena, AST_Node* parent, AST_Node* child);
+AST_Node* ast_make_binary(Arena* arena, AST_Node* parent, AST_Node* left, AST_Node* right);
 
 void parser_print_ast(Parser* parser, b32 print_whitespace, b32 print_comments);
 void parser_print_ast_node(Parser* parser, AST_Node* node, u32 indent, b32 print_whitespace, b32 print_comments);

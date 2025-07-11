@@ -517,8 +517,8 @@ void lexer_make_token_current(Lexer* lexer, Token_Type type, u32 length) {
   lexer->current_token.end_offset   = lexer_get_character_offset(lexer, lexer->current_character + length);
 }
 
-Token_Type lexer_is_token_keyword(Token identifier_token) {
-  String8 value = identifier_token.value;
+Token_Type lexer_is_token_keyword(Token token) {
+  String8 value = token.value;
   
   if (string8_equal(value, Str8("return")))    return Token_Keyword_Return;
   if (string8_equal(value, Str8("if")))        return Token_Keyword_If;
@@ -553,6 +553,16 @@ Token_Type lexer_is_token_keyword(Token identifier_token) {
   if (string8_equal(value, Str8("register")))  return Token_Keyword_Register;
     
   return Token_Identifier;
+}
+
+b32 lexer_is_token_whitespace(Token token) {
+  b32 result = (token.type == Token_Space || token.type == Token_Tab || token.type == Token_New_Line);
+  return result;
+}
+
+b32 lexer_is_token_comment(Token token) {
+  b32 result = (token.type == Token_Comment_Line || token.type == Token_Comment_Block_Start);
+  return result;
 }
 
 b32 lexer_is_at_eof(Lexer* lexer) {

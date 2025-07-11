@@ -274,9 +274,11 @@ b32 lexer_get_number(Lexer* lexer);
 b32 lexer_get_string(Lexer* lexer);
 b32 lexer_get_character(Lexer* lexer);
 
-void lexer_make_token_range(Lexer* lexer, Token_Type type, char8* start, char8* end);
-void lexer_make_token_current(Lexer* lexer, Token_Type type, u32 length);
-Token_Type lexer_is_token_keyword(Token identifier_token); /* Checks if a token is an identifier token is a keyword */
+void       lexer_make_token_range(Lexer* lexer, Token_Type type, char8* start, char8* end);
+void       lexer_make_token_current(Lexer* lexer, Token_Type type, u32 length);
+Token_Type lexer_is_token_keyword(Token token); /* Checks if a token is an identifier token is a keyword */
+b32        lexer_is_token_whitespace(Token token);
+b32        lexer_is_token_comment(Token token);
 
 // Manouvering
 char8 lexer_peek(Lexer* lexer, u32 offset);                       /* Returns next character without advancing */
