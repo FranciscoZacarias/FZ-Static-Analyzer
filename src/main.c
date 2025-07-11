@@ -1,11 +1,10 @@
 
-#define DEBUG 1
-#define PRINT_TOKENS 1
+#define PRINT_TOKENS 0
 #define FZ_ENABLE_ASSERT 1 
 #include "main.h"
 
-#define WORKSPACE_PATH Str8("D:\\work\\FZ-Static-Analyzer\\dummy")
-#define TEST_FILE Str8("expressions_easy.c")
+#define WORKSPACE_PATH Str8("C:\\Personal\\FZ-Static-Analyzer\\dummy")
+#define TEST_FILE Str8("expressions.c")
 
 void entry_point() {
   Arena* arena = arena_init();
@@ -15,8 +14,6 @@ void entry_point() {
   File_Node* current_file = files.first;
 
   while (current_file != NULL) {
-
-
     u64 index = 0;
     if (string8_find_last(current_file->value.path, Str8("\\"), &index) && index+1 <= current_file->value.path.size-1) {
       String8 file_string8 = string8_slice(current_file->value.path, index+1, current_file->value.path.size);
@@ -43,7 +40,7 @@ void entry_point() {
 
     parser_parse_file(&parser);
     printf("\n");
-    parser_print_ast(&parser, true, true);
+    parser_print_ast(&parser, false, true);
 
 	  printf("\n------------------\n");
 

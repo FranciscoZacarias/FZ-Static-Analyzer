@@ -80,113 +80,84 @@ b32 parser_is_token_datatype(Parser* parser) {
 
 b32 parser_parse_comment_line(Parser* parser) {
   b32 result = false;
-
-  /*
   if (parser->lexer->current_token.type == Token_Comment_Line) {
-    Token_Array tokens = token_array_new(parser->arena, MAX_TOKENS_IN_ARRAY); 
+    parser_advance(parser);
     Token current_token = parser->lexer->current_token;
-
+    u32 start_offset = parser->lexer->current_token.start_offset;
     while (current_token.type != Token_New_Line) {
-      tokens.tokens[tokens.count++] = current_token;
       parser_advance(parser);
       current_token = parser->lexer->current_token;
     }
-
-    ast_node_add_child(parser, parser->root, ast_node_new(parser, tokens, AST_Node_Comment_Line));
+    u32 end_offset = parser->lexer->current_token.end_offset;
+    ast_node_add_child(parser, parser->root, ast_node_new(parser, start_offset, end_offset, AST_Node_Comment_Line));
     result = true;
+    parser_advance(parser);
   }
-  */
   return result;
 }
 
 b32 parser_parse_comment_block(Parser* parser) {
   b32 result = false;
-  /*
-  Arena_Temp scratch = scratch_begin(0,0);
   if (parser->lexer->current_token.type == Token_Comment_Block_Start) {
-    Token current = parser->lexer->current_token;
-    String8_List list = string8_list_new(scratch.arena, current.value);
-    while (current.type != Token_Comment_Block_End) {
-      string8_list_push(scratch.arena, &list, current.value);
+    parser_advance(parser);
+    Token current_token = parser->lexer->current_token;
+    u32 start_offset = parser->lexer->current_token.start_offset;
+    while (current_token.type != Token_Comment_Block_End) {
       parser_advance(parser);
-      current = parser->lexer->current_token;
+      current_token = parser->lexer->current_token;
     }
-    string8_list_push(scratch.arena, &list, current.value);
-    parser_advance(parser);
-    current = parser->lexer->current_token;
-    String8  comment_node_value = string8_list_join(parser->arena, &list);
-    AST_Node* comment_line_node = ast_node_new(parser, AST_Node_Comment_Block, comment_node_value);
-    ast_node_add_child(parser, parser->root, comment_line_node);
-    parser_advance(parser);
+    u32 end_offset = parser->lexer->current_token.end_offset - 2; // We don't want the */ to be in in the offset range
+    ast_node_add_child(parser, parser->root, ast_node_new(parser, start_offset, end_offset, AST_Node_Comment_Block));
     result = true;
+    parser_advance(parser);
   }
-  scratch_end(&scratch);
-  */
   return result;
 }
 
 b32 parser_parse_preprocessor_directives(Parser* parser) {
   b32 result = false;
-  /*
-  Arena_Temp scratch = scratch_begin(0,0);
   if (parser->lexer->current_token.type == Token_Preprocessor_Hash) {
     parser_advance(parser);
-    Token preprocessor_type = parser->lexer->current_token;
+    Token preprocessor_directive = parser->lexer->current_token;
+    parser_advance(parser);
     parser_parse_whitespace(parser, parser->root);
-      
-    // Include directive
-    if (string8_equal(preprocessor_type.value, Str8("include"))) {
-      parser_advance(parser);
-      parser_parse_whitespace(parser, parser->root);
-      Token next = parser->lexer->current_token;
-      switch (next.type) {
-        case Token_Less: {
-          parser_advance(parser);
-            
-          Token current = parser->lexer->current_token;
-          String8_List list = string8_list_new(scratch.arena, current.value);
-          while (current.type != Token_Greater) {
-            string8_list_push(scratch.arena, &list, current.value);
-            parser_advance(parser);
-            current = parser->lexer->current_token;
-          }
-          String8 header_name = string8_list_join(parser->arena, &list);
-          AST_Node* node = ast_node_new(parser, AST_Node_Preprocessor_Include_System, header_name);
-          ast_node_add_child(parser, parser->root, node);
-          parser_advance(parser);
-        } break;
-        case Token_String_Literal: {
-          Token header_name = parser->lexer->current_token;
-          Assert(header_name.value.str[0] == '"' && header_name.value.str[header_name.value.size-1] == '"');
-          header_name.value = string8_new(header_name.value.size-2, header_name.value.str+1);
-          AST_Node* node = ast_node_from_token(parser, AST_Node_Preprocessor_Include_Local, header_name);
-          ast_node_add_child(parser, parser->root, node);
-          parser_advance(parser);
-        } break;
-        default: {
-          // TODO(fz): Error unknown include type
-        } break;
-      }
 
-    // Define directive
-    } else if (string8_equal(preprocessor_type.value, Str8("define"))) {
-      // TODO(Fz): Still unhandled
+    Token current_token = parser->lexer->current_token;
+    u32 start_offset = current_token.start_offset;
+    u32 end_offset   = current_token.end_offset;
+    if (0) {
+    } else if (string8_equal(preprocessor_directive.value, Str8("include"))) {
       parser_advance(parser);
-
-    // Pragma directive
-    } else if (string8_equal(preprocessor_type.value, Str8("pragma"))) {
-      // TODO(fz): Still unhandled
-      // We should start by implementing the parse_expression function that will work for most of these.
+    } else if (string8_equal(preprocessor_directive.value, Str8("define"))) {
       parser_advance(parser);
-
+    } else if (string8_equal(preprocessor_directive.value, Str8("undef"))) {
+      parser_advance(parser);
+    } else if (string8_equal(preprocessor_directive.value, Str8("ifdef"))) {
+      parser_advance(parser);
+    } else if (string8_equal(preprocessor_directive.value, Str8("ifndef"))) {
+      parser_advance(parser);
+    } else if (string8_equal(preprocessor_directive.value, Str8("if"))) {
+      parser_advance(parser);
+    } else if (string8_equal(preprocessor_directive.value, Str8("elif"))) {
+      parser_advance(parser);
+    } else if (string8_equal(preprocessor_directive.value, Str8("else"))) {
+      parser_advance(parser);
+    } else if (string8_equal(preprocessor_directive.value, Str8("endif"))) {
+      parser_advance(parser);
+    } else if (string8_equal(preprocessor_directive.value, Str8("error"))) {
+      parser_advance(parser);
+    } else if (string8_equal(preprocessor_directive.value, Str8("warning"))) {
+      parser_advance(parser);
+    } else if (string8_equal(preprocessor_directive.value, Str8("line"))) {
+      parser_advance(parser);
+    } else if (string8_equal(preprocessor_directive.value, Str8("pragma"))) {
+      parser_advance(parser);
+    } else if (string8_equal(preprocessor_directive.value, Str8(""))) {
+      parser_advance(parser); // Empty directive: stray '#' with nothing after it
     } else {
-      // TODO(fz): Error unhandled preprocessor type
-      parser_advance(parser);
+      parser_advance(parser); // Unknown or unsupported directive
     }
-    result = true;
   }
-  scratch_end(&scratch);
-  */
   return result;
 }
 
@@ -247,7 +218,21 @@ b32 parser_parse_variable_declaration(Parser* parser) {
   if (parser->lexer->current_token.type == Token_Assign) {
     parser_advance(parser);
     parser_parse_whitespace(parser, parser->root); // TODO(fz): Root might be wrong? Maybe not.
-    init_expr = parser_parse_expression(parser);
+
+    // TODO(fz): This is where we parse the expression.
+    // Right now we just take the full string value.
+    // init_expr = parser_parse_expression(parser);
+    {
+      // Temporary scope. Remove all.
+      u32 expr_start = parser->lexer->current_token.start_offset;
+      while (parser->lexer->current_token.type != Token_Semicolon) {
+        parser_advance(parser);
+        parser_parse_whitespace(parser, parser->root); // TODO(fz): Root might be wrong? Maybe not.
+      }
+      u32 expr_end = parser->lexer->current_token.end_offset - 1;
+      init_expr = ast_node_new(parser, expr_start, expr_end, AST_Node_Assign);
+    }
+
     if (!init_expr) {
       parser->error.has_error = true;
       parser->error.message = Str8("Expected expression after '='");
@@ -265,22 +250,22 @@ b32 parser_parse_variable_declaration(Parser* parser) {
   end_offset = parser->lexer->current_token.end_offset - 1; // Before semicolon
  
   // Create AST node
-  AST_Node* decl_node = ast_node_new(parser, start_offset, end_offset, AST_Node_Declaration);
+  AST_Node* declaration_node = ast_node_new(parser, start_offset, end_offset, AST_Node_Declaration);
  
   // Add type as child
-  AST_Node* type_node = ast_node_new(parser, type_token.start_offset, type_token.end_offset, AST_Node_Identifier);
-  ast_node_add_child(parser, decl_node, type_node);
+  AST_Node* type_node = ast_node_new(parser, type_token.start_offset, type_token.end_offset, AST_Node_Data_Type);
+  ast_node_add_child(parser, declaration_node, type_node);
  
   // Add identifier as child
   AST_Node* id_node = ast_node_new(parser, identifier_token.start_offset, identifier_token.end_offset, AST_Node_Identifier);
-  ast_node_add_child(parser, decl_node, id_node);
+  ast_node_add_child(parser, declaration_node, id_node);
  
   // Add initializer if present
   if (init_expr) {
-    ast_node_add_child(parser, decl_node, init_expr);
+    ast_node_add_child(parser, declaration_node, init_expr);
   }
  
-  ast_node_add_child(parser, parser->root, decl_node);
+  ast_node_add_child(parser, parser->root, declaration_node);
   return true;
 }
 
@@ -385,7 +370,7 @@ void parser_print_ast_node(Parser* parser, AST_Node* node, u32 indent, b32 print
   }
   
   u32 size = node->end_offset - node->start_offset;
-  printf_color(color, "{%s, %d}: '%.*s'", ast_node_types[node->type], size, size, (node->type != AST_Node_New_Line) ? (parser->lexer->file.data.str + node->start_offset) : "\\n");
+  printf_color(color, "{%s, %d}: %.*s", ast_node_types[node->type], size, size, parser->lexer->file.data.str + node->start_offset);
   printf("\n");
   
   for (u32 i = 0; i < node->children_count; i += 1) {

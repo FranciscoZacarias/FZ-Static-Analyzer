@@ -5,6 +5,7 @@ static const char8* ast_node_types [] = {
   "AST_Node_Unknown",
   "AST_Node_Program",
   "AST_Node_Declaration",
+  "AST_Node_Data_Type",
   
   // Binary operations
   "AST_Node_Add",
@@ -74,6 +75,7 @@ typedef enum AST_Node_Type {
   AST_Node_Unknown = 0,
   AST_Node_Program,
   AST_Node_Declaration,
+  AST_Node_Data_Type,
   
   // Binary operations
   AST_Node_Add,
@@ -140,11 +142,11 @@ typedef enum AST_Node_Type {
 } AST_Node_Type;
 
 typedef struct AST_Node {
-  u32 start_offset;
-  u32 end_offset;
-  AST_Node_Type type;
   struct AST_Node** children;
   u32 children_count;
+  AST_Node_Type type;
+  u32 start_offset;
+  u32 end_offset;
 } AST_Node;
 
 ///////////////
