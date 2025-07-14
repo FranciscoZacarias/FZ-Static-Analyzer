@@ -1,9 +1,9 @@
 
-#define PRINT_TOKENS 0
+#define PRINT_TOKENS 1
 #define FZ_ENABLE_ASSERT 1 
 #include "main.h"
 
-#define WORKSPACE_PATH Str8("C:\\Personal\\FZ-Static-Analyzer\\dummy")
+#define WORKSPACE_PATH Str8("D:\\work\\FZ-Static-Analyzer\\dummy")
 #define TEST_FILE Str8("expressions.c")
 
 void entry_point() {
@@ -40,7 +40,7 @@ void entry_point() {
 
     parser_parse_file(&parser);
     printf("\n");
-    parser_print_ast(&parser, false, true);
+    parser_print_ast(&parser, true, true);
 
 	  printf("\n------------------\n");
 

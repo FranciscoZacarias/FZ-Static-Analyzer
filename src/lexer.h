@@ -4,7 +4,7 @@
 ///////////////
 // Token
 
-static const char* token_type_names[] = {
+global const char* token_type_names[] = {
   "Token_Unknown",
 
   // Literals
@@ -235,17 +235,8 @@ typedef struct Token {
   u32 end_offset;
 } Token;
 
-typedef struct Token_Array {
-  Token* tokens;
-  u64    count;
-} Token_Array;
-#define MAX_TOKENS_IN_ARRAY 8
-
-Token_Array token_array_new(Arena* arena, u64 count);
-
 ///////////////
 // Lexer
-
 typedef struct Lexer {
   Arena* arena;
 
@@ -280,7 +271,8 @@ Token_Type lexer_is_token_keyword(Token identifier_token); /* Checks if a token 
 
 // Manouvering
 char8 lexer_peek(Lexer* lexer, u32 offset);                       /* Returns next character without advancing */
-Token lexer_peek_token(Lexer* lexer, u32 offset);                 /* Returns next token without advancing */
+Token lexer_peek_token(Lexer* lexer);                             /* Returns next token without advancing */
+Token lexer_peek_token_skip_trivia(Lexer* lexer);                 /* Returns next token without advancing */
 char8 lexer_current(Lexer* lexer);                                /* Returns current character */
 void  lexer_advance(Lexer* lexer);                                /* Advances characters by 1 */
 void  lexer_advance_by(Lexer* lexer, u32 count);                  /* Advances characters by count */
@@ -288,7 +280,11 @@ b32   lexer_advance_if_match(Lexer* lexer, char8 expected);       /* Advance if 
 b32   lexer_is_at_eof(Lexer* lexer);                              /* Checks if lexer is at the end of file */
 u32   lexer_get_character_offset(Lexer* lexer, char8* character); /* Returns the offset into the file, of the given character */
 
+b32 is_token_datatype(Token token);
+b32 is_token_whitespace(Token token);
+b32 is_token_trivia(Token_Type type); // TODO(Fz): Receive a token, not token_type
+
 // Help
-b32 lexer_print_current_token(Lexer* lexer);
+void lexer_print_current_token(Lexer* lexer);
 
 #endif // LEXER_H

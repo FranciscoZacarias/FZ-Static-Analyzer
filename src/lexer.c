@@ -1,13 +1,4 @@
 ///////////////
-// Token
-Token_Array token_array_new(Arena* arena, u64 count) {
-  Token_Array result = {0};
-  result.tokens = ArenaPush(arena, Token, count);
-  result.count = 0;
-  return result;
-}
-
-///////////////
 // Lexer
 void lexer_init(Lexer* lexer, String8 file_path) {
   MemoryZeroStruct(lexer);
@@ -36,18 +27,14 @@ void lexer_get_next_token(Lexer* lexer) {
   if (lexer->file.data.size == 0)  return;
   MemoryZeroStruct(&lexer->current_token);
 
+  char8 c = lexer_current(lexer);
   if (lexer_is_at_eof(lexer)) {
     lexer_make_token_current(lexer, Token_End_Of_File, 1);
     return;
-  }
-  
-  char8 c = lexer_current(lexer);
-  if (lexer_is_at_eof(lexer)) {
-    lexer->current_token.type = Token_End_Of_File;
   } else if (char8_is_space(c)) {
     lexer_get_whitespace(lexer);
   } else if (c == '#') {
-    lexer_make_token_current(lexer, Token_Preprocessor_Hash, 1);
+    lexer_make_token_current(lexer, Token_Preprocessor_Hash, 1);  
     lexer_advance(lexer);
   } else if ((c == '/' && (lexer_peek(lexer, 1) == '/' || lexer_peek(lexer, 1) == '*')) || (c == '*' && lexer_peek(lexer, 1) == '/')) {
     lexer_get_comment(lexer);
@@ -71,8 +58,6 @@ void lexer_get_next_token(Lexer* lexer) {
 #if PRINT_TOKENS
   lexer_print_current_token(lexer);
 #endif
-
-  return;
 }
 
 b32 lexer_get_whitespace(Lexer* lexer) {
@@ -570,8 +555,8 @@ char8 lexer_peek(Lexer* lexer, u32 offset) {
   return lexer->current_character[offset];
 }
 
-Token lexer_peek_token(Lexer* lexer, u32 offset) {
-  // Save current state
+Token lexer_peek_token_skip_whitespace(Lexer* lexer) {
+  // Save current state (No MemoryCopy because we have all files loaded).
   char8* saved_pos    = lexer->current_character;
   u32 saved_line      = lexer->line;
   u32 saved_column    = lexer->column;
@@ -579,7 +564,31 @@ Token lexer_peek_token(Lexer* lexer, u32 offset) {
     
   // Get next token
   lexer_get_next_token(lexer);
-  Token next_token = lexer->current_token;
+  Token next_non_whitespace_token = lexer->current_token;
+  while (is_token_whitespace(next_non_whitespace_token)) {
+    lexer_get_next_token(lexer);
+    next_non_whitespace_token = lexer->current_token;
+  }
+  
+  // Restore state
+  lexer->current_character = saved_pos;
+  lexer->line              = saved_line;
+  lexer->column            = saved_column;
+  lexer->current_token     = saved_current;
+    
+  return next_non_whitespace_token;
+}
+
+Token lexer_peek_token(Lexer* lexer) {
+  // Save current state (No MemoryCopy because we have all files loaded).
+  char8* saved_pos    = lexer->current_character;
+  u32 saved_line      = lexer->line;
+  u32 saved_column    = lexer->column;
+  Token saved_current = lexer->current_token;
+    
+  // Get next token
+  lexer_get_next_token(lexer);
+  Token result = lexer->current_token;
     
   // Restore state
   lexer->current_character = saved_pos;
@@ -587,7 +596,28 @@ Token lexer_peek_token(Lexer* lexer, u32 offset) {
   lexer->column            = saved_column;
   lexer->current_token     = saved_current;
     
-  return next_token;
+  return result;
+}
+
+Token lexer_peek_token_skip_trivia(Lexer* lexer) {
+  char8* save_cursor  = lexer->current_character;
+  u32 save_line       = lexer->line;
+  u32 save_column     = lexer->column;
+  Token save_token    = lexer->current_token;
+
+  Token result;
+  do {
+    lexer_get_next_token(lexer);
+    result = lexer->current_token;
+  } while (is_token_trivia(result.type));
+
+  // Restore lexer state
+  lexer->current_character = save_cursor;
+  lexer->line              = save_line;
+  lexer->column            = save_column;
+  lexer->current_token     = save_token;
+
+  return result;
 }
 
 char8 lexer_current(Lexer* lexer) {
@@ -597,7 +627,7 @@ char8 lexer_current(Lexer* lexer) {
 void lexer_advance(Lexer* lexer) {
   if (lexer->current_character >= lexer->file_end)  return;
     
-  if (*lexer->current_character == '\n') {
+  if (*(lexer->current_character) == '\n') {
     lexer->line += 1;
     lexer->column = 1;
   } else {
@@ -619,6 +649,33 @@ b32 lexer_advance_if_match(Lexer* lexer, char8 expected) {
     return true;
   }
   return false;
+}
+
+b32 is_token_datatype(Token token) {
+  b32 result  = (token.type == Token_Keyword_Int      ||
+                 token.type == Token_Keyword_Float    ||
+                 token.type == Token_Keyword_Double   ||
+                 token.type == Token_Keyword_Char     ||
+                 token.type == Token_Keyword_Signed   ||
+                 token.type == Token_Keyword_Unsigned ||
+                 token.type == Token_Keyword_Void);
+  return result;
+}
+
+b32 is_token_whitespace(Token token) {
+  b32 result = (token.type == Token_Space ||
+                token.type == Token_Tab   ||
+                token.type == Token_New_Line);
+  return result;
+}
+
+b32 is_token_trivia(Token_Type type) {
+  return (type == Token_Space ||
+          type == Token_Tab ||
+          type == Token_New_Line ||
+          type == Token_Comment_Line ||
+          type == Token_Comment_Block_Start ||
+          type == Token_Comment_Block_End);
 }
 
 b32 lexer_print_current_token(Lexer* lexer) {
