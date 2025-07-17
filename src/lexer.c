@@ -23,342 +23,342 @@ void lexer_init(Lexer* lexer, String8 file_path) {
 // - String and character literals
 // - Single-character operators and punctuation
 // - Unknown/Error tokens
-void lexer_get_next_token(Lexer* lexer) {
+void next_token(Lexer* lexer) {
   if (lexer->file.data.size == 0)  return;
   MemoryZeroStruct(&lexer->current_token);
 
-  char8 c = lexer_current(lexer);
-  if (lexer_is_at_eof(lexer)) {
-    lexer_make_token_current(lexer, Token_End_Of_File, 1);
+  char8 c = current_character(lexer);
+  if (lexer_at_eof(lexer)) {
+    make_token(lexer, Token_End_Of_File, 1);
     return;
   } else if (char8_is_space(c)) {
-    lexer_get_whitespace(lexer);
+    token_from_whitespace(lexer);
   } else if (c == '#') {
-    lexer_make_token_current(lexer, Token_Preprocessor_Hash, 1);  
-    lexer_advance(lexer);
-  } else if ((c == '/' && (lexer_peek(lexer, 1) == '/' || lexer_peek(lexer, 1) == '*')) || (c == '*' && lexer_peek(lexer, 1) == '/')) {
-    lexer_get_comment(lexer);
+    make_token(lexer, Token_Preprocessor_Hash, 1);  
+    advance_character(lexer);
+  } else if ((c == '/' && (peek_character(lexer, 1) == '/' || peek_character(lexer, 1) == '*')) || (c == '*' && peek_character(lexer, 1) == '/')) {
+    token_from_comment(lexer);
   } else if (char8_is_alpha(c) || c == '_') {
-    lexer_get_identifier_or_keyword(lexer);
+    token_from_identifier_or_keyword(lexer);
   } else if (isdigit(c)) {
-    lexer_get_number(lexer);
+    token_from_number(lexer);
   } else if (c == '"') {
-    lexer_get_string(lexer);
+    token_from_string(lexer);
   } else if (c == '\'') {
-    lexer_get_character(lexer);
-  } else if (lexer_get_operator(lexer)) {
-  } else if (lexer_get_delimiter(lexer)) {
-  } else if (lexer_get_braces(lexer)) {
+    token_from_character(lexer);
+  } else if (token_from_operator(lexer)) {
+  } else if (token_from_delimiter(lexer)) {
+  } else if (token_from_braces(lexer)) {
   } else {
     //lexer->current_token.type = Token_Unknown;
-    lexer_make_token_current(lexer, Token_Unknown, 1);
-    lexer_advance(lexer);
+    make_token(lexer, Token_Unknown, 1);
+    advance_character(lexer);
   }
 
 #if PRINT_TOKENS
-  lexer_print_current_token(lexer);
+  token_print(lexer);
 #endif
 }
 
-b32 lexer_get_whitespace(Lexer* lexer) {
-  char8 c = lexer_current(lexer);
+b32 token_from_whitespace(Lexer* lexer) {
+  char8 c = current_character(lexer);
   
   if (c == ' ') {
-    lexer_make_token_current(lexer, Token_Space, 1);
-    lexer_advance(lexer);
+    make_token(lexer, Token_Space, 1);
+    advance_character(lexer);
     return true;
   }
   
   if (c == '\t') {
-    lexer_make_token_current(lexer, Token_Tab, 1);
-    lexer_advance(lexer);
+    make_token(lexer, Token_Tab, 1);
+    advance_character(lexer);
     return true;
   }
   
   if (c == '\n' || c == '\r') {
     char8* start = lexer->current_character;
-    lexer_advance(lexer);
+    advance_character(lexer);
 
     if (c == '\r') {
-      lexer_advance_if_match(lexer, '\n');
+      advance_if_match(lexer, '\n');
     }
 
     lexer->line += 1;
     lexer->column = 1;
-    lexer_make_token_range(lexer, Token_New_Line, start, lexer->current_character);
+    make_token_range(lexer, Token_New_Line, start, lexer->current_character);
     return true;
   }
   
   return false;
 }
 
-b32 lexer_get_comment(Lexer* lexer) {
-  char8 c = lexer_current(lexer);
+b32 token_from_comment(Lexer* lexer) {
+  char8 c = current_character(lexer);
   
-  if (c == '/' && lexer_peek(lexer, 1) == '/') {
-    lexer_make_token_current(lexer, Token_Comment_Line, 2);
-    lexer_advance_by(lexer, 2);
+  if (c == '/' && peek_character(lexer, 1) == '/') {
+    make_token(lexer, Token_Comment_Line, 2);
+    advance_by(lexer, 2);
     return true;
   }
   
-  if (c == '/' && lexer_peek(lexer, 1) == '*') {
+  if (c == '/' && peek_character(lexer, 1) == '*') {
     char8* start = lexer->current_character;
-    lexer_make_token_current(lexer, Token_Comment_Block_Start, 2);
-    lexer_advance_by(lexer, 2);
+    make_token(lexer, Token_Comment_Block_Start, 2);
+    advance_by(lexer, 2);
     return true;
   }
   
-  if (c == '*' && lexer_peek(lexer, 1) == '/') {
+  if (c == '*' && peek_character(lexer, 1) == '/') {
     char8* start = lexer->current_character;
-    lexer_make_token_current(lexer, Token_Comment_Block_End, 2);
-    lexer_advance_by(lexer, 2);
+    make_token(lexer, Token_Comment_Block_End, 2);
+    advance_by(lexer, 2);
     return true;
   }
   
   return false;
 }
 
-b32 lexer_get_operator(Lexer* lexer) {
-  char8 c = lexer_current(lexer);
-  char8 next = lexer_peek(lexer, 1);
+b32 token_from_operator(Lexer* lexer) {
+  char8 c = current_character(lexer);
+  char8 next = peek_character(lexer, 1);
   
   switch (c) {
     case '+':
       if (next == '+') {
-        lexer_make_token_current(lexer, Token_Increment, 2);
-        lexer_advance_by(lexer, 2);
+        make_token(lexer, Token_Increment, 2);
+        advance_by(lexer, 2);
       } else if (next == '=') {
-        lexer_make_token_current(lexer, Token_Plus_Assign, 2);
-        lexer_advance_by(lexer, 2);
+        make_token(lexer, Token_Plus_Assign, 2);
+        advance_by(lexer, 2);
       } else {
-        lexer_make_token_current(lexer, Token_Plus, 1);
-        lexer_advance(lexer);
+        make_token(lexer, Token_Plus, 1);
+        advance_character(lexer);
       }
       return true;
       
     case '-':
       if (next == '-') {
-        lexer_make_token_current(lexer, Token_Decrement, 2);
-        lexer_advance_by(lexer, 2);
+        make_token(lexer, Token_Decrement, 2);
+        advance_by(lexer, 2);
       } else if (next == '=') {
-        lexer_make_token_current(lexer, Token_Minus_Assign, 2);
-        lexer_advance_by(lexer, 2);
+        make_token(lexer, Token_Minus_Assign, 2);
+        advance_by(lexer, 2);
       } else if (next == '>') {
-        lexer_make_token_current(lexer, Token_Arrow, 2);
-        lexer_advance_by(lexer, 2);
+        make_token(lexer, Token_Arrow, 2);
+        advance_by(lexer, 2);
       } else {
-        lexer_make_token_current(lexer, Token_Minus, 1);
-        lexer_advance(lexer);
+        make_token(lexer, Token_Minus, 1);
+        advance_character(lexer);
       }
       return true;
       
     case '*':
       if (next == '=') {
-        lexer_make_token_current(lexer, Token_Multiply_Assign, 2);
-        lexer_advance_by(lexer, 2);
+        make_token(lexer, Token_Multiply_Assign, 2);
+        advance_by(lexer, 2);
       } else {
-        lexer_make_token_current(lexer, Token_Multiply, 1);
-        lexer_advance(lexer);
+        make_token(lexer, Token_Multiply, 1);
+        advance_character(lexer);
       }
       return true;
       
     case '/':
       if (next == '=') {
-        lexer_make_token_current(lexer, Token_Divide_Assign, 2);
-        lexer_advance_by(lexer, 2);
+        make_token(lexer, Token_Divide_Assign, 2);
+        advance_by(lexer, 2);
       } else {
-        lexer_make_token_current(lexer, Token_Divide, 1);
-        lexer_advance(lexer);
+        make_token(lexer, Token_Divide, 1);
+        advance_character(lexer);
       }
       return true;
       
     case '%':
       if (next == '=') {
-        lexer_make_token_current(lexer, Token_Modulo_Assign, 2);
-        lexer_advance_by(lexer, 2);
+        make_token(lexer, Token_Modulo_Assign, 2);
+        advance_by(lexer, 2);
       } else {
-        lexer_make_token_current(lexer, Token_Modulo, 1);
-        lexer_advance(lexer);
+        make_token(lexer, Token_Modulo, 1);
+        advance_character(lexer);
       }
       return true;
       
     case '=':
       if (next == '=') {
-        lexer_make_token_current(lexer, Token_Equal, 2);
-        lexer_advance_by(lexer, 2);
+        make_token(lexer, Token_Equal, 2);
+        advance_by(lexer, 2);
       } else {
-        lexer_make_token_current(lexer, Token_Assign, 1);
-        lexer_advance(lexer);
+        make_token(lexer, Token_Assign, 1);
+        advance_character(lexer);
       }
       return true;
       
     case '!':
       if (next == '=') {
-        lexer_make_token_current(lexer, Token_Not_Equal, 2);
-        lexer_advance_by(lexer, 2);
+        make_token(lexer, Token_Not_Equal, 2);
+        advance_by(lexer, 2);
       } else {
-        lexer_make_token_current(lexer, Token_Not, 1);
-        lexer_advance(lexer);
+        make_token(lexer, Token_Not, 1);
+        advance_character(lexer);
       }
       return true;
       
     case '<':
       if (next == '=') {
-        lexer_make_token_current(lexer, Token_Less_Equal, 2);
-        lexer_advance_by(lexer, 2);
+        make_token(lexer, Token_Less_Equal, 2);
+        advance_by(lexer, 2);
       } else if (next == '<') {
-        if (lexer_peek(lexer, 2) == '=') {
-          lexer_make_token_current(lexer, Token_Left_Shift_Assign, 3);
-          lexer_advance_by(lexer, 3);
+        if (peek_character(lexer, 2) == '=') {
+          make_token(lexer, Token_Left_Shift_Assign, 3);
+          advance_by(lexer, 3);
         } else {
-          lexer_make_token_current(lexer, Token_Left_Shift, 2);
-          lexer_advance_by(lexer, 2);
+          make_token(lexer, Token_Left_Shift, 2);
+          advance_by(lexer, 2);
         }
       } else {
-        lexer_make_token_current(lexer, Token_Less, 1);
-        lexer_advance(lexer);
+        make_token(lexer, Token_Less, 1);
+        advance_character(lexer);
       }
       return true;
       
     case '>':
       if (next == '=') {
-        lexer_make_token_current(lexer, Token_Greater_Equal, 2);
-        lexer_advance_by(lexer, 2);
+        make_token(lexer, Token_Greater_Equal, 2);
+        advance_by(lexer, 2);
       } else if (next == '>') {
-        if (lexer_peek(lexer, 2) == '=') {
-          lexer_make_token_current(lexer, Token_Right_Shift_Assign, 3);
-          lexer_advance_by(lexer, 3);
+        if (peek_character(lexer, 2) == '=') {
+          make_token(lexer, Token_Right_Shift_Assign, 3);
+          advance_by(lexer, 3);
         } else {
-          lexer_make_token_current(lexer, Token_Right_Shift, 2);
-          lexer_advance_by(lexer, 2);
+          make_token(lexer, Token_Right_Shift, 2);
+          advance_by(lexer, 2);
         }
       } else {
-        lexer_make_token_current(lexer, Token_Greater, 1);
-        lexer_advance(lexer);
+        make_token(lexer, Token_Greater, 1);
+        advance_character(lexer);
       }
       return true;
       
     case '&':
       if (next == '&') {
-        lexer_make_token_current(lexer, Token_Logical_And, 2);
-        lexer_advance_by(lexer, 2);
+        make_token(lexer, Token_Logical_And, 2);
+        advance_by(lexer, 2);
       } else if (next == '=') {
-        lexer_make_token_current(lexer, Token_Bit_And_Assign, 2);
-        lexer_advance_by(lexer, 2);
+        make_token(lexer, Token_Bit_And_Assign, 2);
+        advance_by(lexer, 2);
       } else {
-        lexer_make_token_current(lexer, Token_Bit_And, 1);
-        lexer_advance(lexer);
+        make_token(lexer, Token_Bit_And, 1);
+        advance_character(lexer);
       }
       return true;
       
     case '|':
       if (next == '|') {
-        lexer_make_token_current(lexer, Token_Logical_Or, 2);
-        lexer_advance_by(lexer, 2);
+        make_token(lexer, Token_Logical_Or, 2);
+        advance_by(lexer, 2);
       } else if (next == '=') {
-        lexer_make_token_current(lexer, Token_Bit_Or_Assign, 2);
-        lexer_advance_by(lexer, 2);
+        make_token(lexer, Token_Bit_Or_Assign, 2);
+        advance_by(lexer, 2);
       } else {
-        lexer_make_token_current(lexer, Token_Bit_Or, 1);
-        lexer_advance(lexer);
+        make_token(lexer, Token_Bit_Or, 1);
+        advance_character(lexer);
       }
       return true;
       
     case '^':
       if (next == '=') {
-        lexer_make_token_current(lexer, Token_Bit_Xor_Assign, 2);
-        lexer_advance_by(lexer, 2);
+        make_token(lexer, Token_Bit_Xor_Assign, 2);
+        advance_by(lexer, 2);
       } else {
-        lexer_make_token_current(lexer, Token_Bit_Xor, 1);
-        lexer_advance(lexer);
+        make_token(lexer, Token_Bit_Xor, 1);
+        advance_character(lexer);
       }
       return true;
       
     case '~':
-      lexer_make_token_current(lexer, Token_Bit_Not, 1);
-      lexer_advance(lexer);
+      make_token(lexer, Token_Bit_Not, 1);
+      advance_character(lexer);
       return true;
   }
   
   return false;
 }
 
-b32 lexer_get_delimiter(Lexer* lexer) {
-  char8 c = lexer_current(lexer);
+b32 token_from_delimiter(Lexer* lexer) {
+  char8 c = current_character(lexer);
   
   switch (c) {
     case ';':
-      lexer_make_token_current(lexer, Token_Semicolon, 1);
-      lexer_advance(lexer);
+      make_token(lexer, Token_Semicolon, 1);
+      advance_character(lexer);
       return true;
     case ',':
-      lexer_make_token_current(lexer, Token_Comma, 1);
-      lexer_advance(lexer);
+      make_token(lexer, Token_Comma, 1);
+      advance_character(lexer);
       return true;
     case '.':
-      lexer_make_token_current(lexer, Token_Dot, 1);
-      lexer_advance(lexer);
+      make_token(lexer, Token_Dot, 1);
+      advance_character(lexer);
       return true;
     case ':':
-      lexer_make_token_current(lexer, Token_Colon, 1);
-      lexer_advance(lexer);
+      make_token(lexer, Token_Colon, 1);
+      advance_character(lexer);
       return true;
     case '?':
-      lexer_make_token_current(lexer, Token_Question, 1);
-      lexer_advance(lexer);
+      make_token(lexer, Token_Question, 1);
+      advance_character(lexer);
       return true;
   }
   
   return false;
 }
 
-b32 lexer_get_braces(Lexer* lexer) {
-  char8 c = lexer_current(lexer);
+b32 token_from_braces(Lexer* lexer) {
+  char8 c = current_character(lexer);
   
   switch (c) {
     case '(':
-      lexer_make_token_current(lexer, Token_Open_Parenthesis, 1);
-      lexer_advance(lexer);
+      make_token(lexer, Token_Open_Parenthesis, 1);
+      advance_character(lexer);
       return true;
     case ')':
-      lexer_make_token_current(lexer, Token_Close_Parenthesis, 1);
-      lexer_advance(lexer);
+      make_token(lexer, Token_Close_Parenthesis, 1);
+      advance_character(lexer);
       return true;
     case '{':
-      lexer_make_token_current(lexer, Token_Open_Brace, 1);
-      lexer_advance(lexer);
+      make_token(lexer, Token_Open_Brace, 1);
+      advance_character(lexer);
       return true;
     case '}':
-      lexer_make_token_current(lexer, Token_Close_Brace, 1);
-      lexer_advance(lexer);
+      make_token(lexer, Token_Close_Brace, 1);
+      advance_character(lexer);
       return true;
     case '[':
-      lexer_make_token_current(lexer, Token_Open_Bracket, 1);
-      lexer_advance(lexer);
+      make_token(lexer, Token_Open_Bracket, 1);
+      advance_character(lexer);
       return true;
     case ']':
-      lexer_make_token_current(lexer, Token_Close_Bracket, 1);
-      lexer_advance(lexer);
+      make_token(lexer, Token_Close_Bracket, 1);
+      advance_character(lexer);
       return true;
   }
   
   return false;
 }
 
-b32 lexer_get_identifier_or_keyword(Lexer* lexer) {
-  char8 c = lexer_current(lexer);
+b32 token_from_identifier_or_keyword(Lexer* lexer) {
+  char8 c = current_character(lexer);
   
   if (!char8_is_alpha(c) && c != '_') return false;
   
   char8* start = lexer->current_character;
   
-  while (char8_is_alphanum(lexer_current(lexer)) || lexer_current(lexer) == '_') {
-    lexer_advance(lexer);
+  while (char8_is_alphanum(current_character(lexer)) || current_character(lexer) == '_') {
+    advance_character(lexer);
   }
   
-  lexer_make_token_range(lexer, Token_Identifier, start, lexer->current_character);
+  make_token_range(lexer, Token_Identifier, start, lexer->current_character);
   
-  Token_Type keyword_type = lexer_is_token_keyword(lexer->current_token);
+  Token_Type keyword_type = is_token_keyword(lexer->current_token);
   if (keyword_type != Token_Identifier) {
     lexer->current_token.type = keyword_type;
   }
@@ -366,8 +366,8 @@ b32 lexer_get_identifier_or_keyword(Lexer* lexer) {
   return true;
 }
 
-b32 lexer_get_number(Lexer* lexer) {
-  char8 c = lexer_current(lexer);
+b32 token_from_number(Lexer* lexer) {
+  char8 c = current_character(lexer);
   
   if (!isdigit(c)) {
     return false;
@@ -377,132 +377,132 @@ b32 lexer_get_number(Lexer* lexer) {
   Token_Type token_type = Token_Int_Literal;
   
   // Handle hex numbers
-  if (c == '0' && (lexer_peek(lexer, 1) == 'x' || lexer_peek(lexer, 1) == 'X')) {
-    lexer_advance_by(lexer, 2);
-    while (isxdigit(lexer_current(lexer))) {
-      lexer_advance(lexer);
+  if (c == '0' && (peek_character(lexer, 1) == 'x' || peek_character(lexer, 1) == 'X')) {
+    advance_by(lexer, 2);
+    while (isxdigit(current_character(lexer))) {
+      advance_character(lexer);
     }
     token_type = Token_Hex_Literal;
   } else {
     // Handle decimal numbers
-    while (isdigit(lexer_current(lexer))) {
-      lexer_advance(lexer);
+    while (isdigit(current_character(lexer))) {
+      advance_character(lexer);
     }
     
     // Handle floating point
-    if (lexer_current(lexer) == '.') {
-      lexer_advance(lexer);
-      while (isdigit(lexer_current(lexer))) {
-        lexer_advance(lexer);
+    if (current_character(lexer) == '.') {
+      advance_character(lexer);
+      while (isdigit(current_character(lexer))) {
+        advance_character(lexer);
       }
       token_type = Token_Float_Literal;
     }
     
     // Handle scientific notation
-    if (lexer_current(lexer) == 'e' || lexer_current(lexer) == 'E') {
-      lexer_advance(lexer);
-      if (lexer_current(lexer) == '+' || lexer_current(lexer) == '-') {
-        lexer_advance(lexer);
+    if (current_character(lexer) == 'e' || current_character(lexer) == 'E') {
+      advance_character(lexer);
+      if (current_character(lexer) == '+' || current_character(lexer) == '-') {
+        advance_character(lexer);
       }
-      while (isdigit(lexer_current(lexer))) {
-        lexer_advance(lexer);
+      while (isdigit(current_character(lexer))) {
+        advance_character(lexer);
       }
       token_type = Token_Float_Literal;
     }
   }
   
   // Handle suffixes
-  char8 suffix = lexer_current(lexer);
+  char8 suffix = current_character(lexer);
   if (suffix == 'f' || suffix == 'F') {
-    lexer_advance(lexer);
+    advance_character(lexer);
     token_type = Token_Float_Literal;
   } else if (suffix == 'l' || suffix == 'L' || suffix == 'u' || suffix == 'U') {
-    lexer_advance(lexer);
+    advance_character(lexer);
     // Handle UL, LU combinations
-    char8 next_suffix = lexer_current(lexer);
+    char8 next_suffix = current_character(lexer);
     if ((suffix == 'u' || suffix == 'U') && (next_suffix == 'l' || next_suffix == 'L')) {
-      lexer_advance(lexer);
+      advance_character(lexer);
     } else if ((suffix == 'l' || suffix == 'L') && (next_suffix == 'u' || next_suffix == 'U')) {
-      lexer_advance(lexer);
+      advance_character(lexer);
     }
   }
   
-  lexer_make_token_range(lexer, token_type, start, lexer->current_character);
+  make_token_range(lexer, token_type, start, lexer->current_character);
   return true;
 }
 
 
-b32 lexer_get_string(Lexer* lexer) {
-  if (lexer_current(lexer) != '"') {
+b32 token_from_string(Lexer* lexer) {
+  if (current_character(lexer) != '"') {
     return false;
   }
   
   char8* start = lexer->current_character;
-  lexer_advance(lexer); // Skip opening quote
+  advance_character(lexer); // Skip opening quote
   
-  while (!lexer_is_at_eof(lexer) && lexer_current(lexer) != '"') {
-    if (lexer_current(lexer) == '\\') {
-      lexer_advance(lexer); // Skip escape character
-      if (!lexer_is_at_eof(lexer)) {
-        lexer_advance(lexer); // Skip escaped character
+  while (!lexer_at_eof(lexer) && current_character(lexer) != '"') {
+    if (current_character(lexer) == '\\') {
+      advance_character(lexer); // Skip escape character
+      if (!lexer_at_eof(lexer)) {
+        advance_character(lexer); // Skip escaped character
       }
     } else {
-      lexer_advance(lexer);
+      advance_character(lexer);
     }
   }
   
-  if (lexer_current(lexer) == '"') {
-    lexer_advance(lexer); // Skip closing quote
+  if (current_character(lexer) == '"') {
+    advance_character(lexer); // Skip closing quote
   }
   
-  lexer_make_token_range(lexer, Token_String_Literal, start, lexer->current_character);
+  make_token_range(lexer, Token_String_Literal, start, lexer->current_character);
   return true;
 }
 
-b32 lexer_get_character(Lexer* lexer) {
-  if (lexer_current(lexer) != '\'') {
+b32 token_from_character(Lexer* lexer) {
+  if (current_character(lexer) != '\'') {
     return false;
   }
   
   char8* start = lexer->current_character;
-  lexer_advance(lexer); // Skip opening quote
+  advance_character(lexer); // Skip opening quote
   
-  if (!lexer_is_at_eof(lexer)) {
-    if (lexer_current(lexer) == '\\') {
-      lexer_advance(lexer); // Skip escape character
-      if (!lexer_is_at_eof(lexer)) {
-        lexer_advance(lexer); // Skip escaped character
+  if (!lexer_at_eof(lexer)) {
+    if (current_character(lexer) == '\\') {
+      advance_character(lexer); // Skip escape character
+      if (!lexer_at_eof(lexer)) {
+        advance_character(lexer); // Skip escaped character
       }
     } else {
-      lexer_advance(lexer); // Skip character
+      advance_character(lexer); // Skip character
     }
   }
   
-  if (lexer_current(lexer) == '\'') {
-    lexer_advance(lexer); // Skip closing quote
+  if (current_character(lexer) == '\'') {
+    advance_character(lexer); // Skip closing quote
   }
   
-  lexer_make_token_range(lexer, Token_Char_Literal, start, lexer->current_character);
+  make_token_range(lexer, Token_Char_Literal, start, lexer->current_character);
   return true;
 }
 
-void lexer_make_token_range(Lexer* lexer, Token_Type type, char8* start, char8* end) {
+void make_token_range(Lexer* lexer, Token_Type type, char8* start, char8* end) {
   lexer->current_token.type         = type;
   lexer->current_token.value.str    = start;
   lexer->current_token.value.size   = (u32)(end - start);
-  lexer->current_token.start_offset = lexer_get_character_offset(lexer, start);
-  lexer->current_token.end_offset   = lexer_get_character_offset(lexer, end);
+  lexer->current_token.start_offset = offset_of_character(lexer, start);
+  lexer->current_token.end_offset   = offset_of_character(lexer, end);
 }
 
-void lexer_make_token_current(Lexer* lexer, Token_Type type, u32 length) {
+void make_token(Lexer* lexer, Token_Type type, u32 length) {
   lexer->current_token.type         = type;
   lexer->current_token.value.str    = lexer->current_character;
   lexer->current_token.value.size   = length;
-  lexer->current_token.start_offset = lexer_get_character_offset(lexer, lexer->current_character);
-  lexer->current_token.end_offset   = lexer_get_character_offset(lexer, lexer->current_character + length);
+  lexer->current_token.start_offset = offset_of_character(lexer, lexer->current_character);
+  lexer->current_token.end_offset   = offset_of_character(lexer, lexer->current_character + length);
 }
 
-Token_Type lexer_is_token_keyword(Token identifier_token) {
+Token_Type is_token_keyword(Token identifier_token) {
   String8 value = identifier_token.value;
   
   if (string8_equal(value, Str8("return")))    return Token_Keyword_Return;
@@ -540,15 +540,15 @@ Token_Type lexer_is_token_keyword(Token identifier_token) {
   return Token_Identifier;
 }
 
-b32 lexer_is_at_eof(Lexer* lexer) {
+b32 lexer_at_eof(Lexer* lexer) {
   return lexer->current_character >= lexer->file_end;
 }
 
-u32 lexer_get_character_offset(Lexer* lexer, char8* character) {
+u32 offset_of_character(Lexer* lexer, char8* character) {
   return (u32)(character - lexer->file_start);
 }
 
-char8 lexer_peek(Lexer* lexer, u32 offset) {
+char8 peek_character(Lexer* lexer, u32 offset) {
   if (lexer->current_character + offset >= lexer->file_end) {
     return '\0';
   }
@@ -563,10 +563,10 @@ Token lexer_peek_token_skip_whitespace(Lexer* lexer) {
   Token saved_current = lexer->current_token;
     
   // Get next token
-  lexer_get_next_token(lexer);
+  next_token(lexer);
   Token next_non_whitespace_token = lexer->current_token;
   while (is_token_whitespace(next_non_whitespace_token)) {
-    lexer_get_next_token(lexer);
+    next_token(lexer);
     next_non_whitespace_token = lexer->current_token;
   }
   
@@ -579,7 +579,7 @@ Token lexer_peek_token_skip_whitespace(Lexer* lexer) {
   return next_non_whitespace_token;
 }
 
-Token lexer_peek_token(Lexer* lexer) {
+Token peek_token(Lexer* lexer) {
   // Save current state (No MemoryCopy because we have all files loaded).
   char8* saved_pos    = lexer->current_character;
   u32 saved_line      = lexer->line;
@@ -587,7 +587,7 @@ Token lexer_peek_token(Lexer* lexer) {
   Token saved_current = lexer->current_token;
     
   // Get next token
-  lexer_get_next_token(lexer);
+  next_token(lexer);
   Token result = lexer->current_token;
     
   // Restore state
@@ -599,7 +599,7 @@ Token lexer_peek_token(Lexer* lexer) {
   return result;
 }
 
-Token lexer_peek_token_skip_trivia(Lexer* lexer) {
+Token peek_token_skip_trivia(Lexer* lexer) {
   char8* save_cursor  = lexer->current_character;
   u32 save_line       = lexer->line;
   u32 save_column     = lexer->column;
@@ -607,7 +607,7 @@ Token lexer_peek_token_skip_trivia(Lexer* lexer) {
 
   Token result;
   do {
-    lexer_get_next_token(lexer);
+    next_token(lexer);
     result = lexer->current_token;
   } while (is_token_trivia(result.type));
 
@@ -620,11 +620,11 @@ Token lexer_peek_token_skip_trivia(Lexer* lexer) {
   return result;
 }
 
-char8 lexer_current(Lexer* lexer) {
-  return lexer_peek(lexer, 0);
+char8 current_character(Lexer* lexer) {
+  return peek_character(lexer, 0);
 }
 
-void lexer_advance(Lexer* lexer) {
+void advance_character(Lexer* lexer) {
   if (lexer->current_character >= lexer->file_end)  return;
     
   if (*(lexer->current_character) == '\n') {
@@ -637,15 +637,15 @@ void lexer_advance(Lexer* lexer) {
   lexer->current_character += 1;
 }
 
-void lexer_advance_by(Lexer* lexer, u32 count) {
+void advance_by(Lexer* lexer, u32 count) {
   for (u32 i = 0; i < count && lexer->current_character < lexer->file_end; i += 1) {
-    lexer_advance(lexer);
+    advance_character(lexer);
   }
 }
 
-b32 lexer_advance_if_match(Lexer* lexer, char8 expected) {
-  if (lexer_current(lexer) == expected) {
-    lexer_advance(lexer);
+b32 advance_if_match(Lexer* lexer, char8 expected) {
+  if (current_character(lexer) == expected) {
+    advance_character(lexer);
     return true;
   }
   return false;
@@ -678,7 +678,7 @@ b32 is_token_trivia(Token_Type type) {
           type == Token_Comment_Block_End);
 }
 
-void lexer_print_current_token(Lexer* lexer) {
+void token_print(Lexer* lexer) {
   if (!lexer) return;
 
   // Safety: check enum range

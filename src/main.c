@@ -3,7 +3,7 @@
 #define FZ_ENABLE_ASSERT 1 
 #include "main.h"
 
-#define TEST_FILE Str8("expressions.c")
+#define TEST_FILE Str8("expressions_easy.c")
 
 void entry_point(Command_Line command_line) {
   Arena* arena = arena_init();
@@ -46,9 +46,9 @@ void entry_point(Command_Line command_line) {
     Parser parser;
     parser_init(&parser, &lexer);
 
-    parser_parse_file(&parser);
+    parse_file(&parser);
     printf("\n");
-    parser_print_ast(&parser, true, true);
+    print_ast(&parser, true, true);
 
 	  printf("\n------------------\n");
   }

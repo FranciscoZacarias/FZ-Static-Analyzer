@@ -252,39 +252,39 @@ typedef struct Lexer {
 } Lexer;
 
 void lexer_init(Lexer* lexer, String8 file_path); /* Initializes the lexer with workspace path */
-void lexer_get_next_token(Lexer* lexer);
+void next_token(Lexer* lexer);
 
 // Tokening
-b32 lexer_get_whitespace(Lexer* lexer);
-b32 lexer_get_comment(Lexer* lexer);
-b32 lexer_get_operator(Lexer* lexer);
-b32 lexer_get_delimiter(Lexer* lexer);
-b32 lexer_get_braces(Lexer* lexer);
-b32 lexer_get_identifier_or_keyword(Lexer* lexer);
-b32 lexer_get_number(Lexer* lexer);
-b32 lexer_get_string(Lexer* lexer);
-b32 lexer_get_character(Lexer* lexer);
+b32 token_from_whitespace(Lexer* lexer);
+b32 token_from_comment(Lexer* lexer);
+b32 token_from_operator(Lexer* lexer);
+b32 token_from_delimiter(Lexer* lexer);
+b32 token_from_braces(Lexer* lexer);
+b32 token_from_identifier_or_keyword(Lexer* lexer);
+b32 token_from_number(Lexer* lexer);
+b32 token_from_string(Lexer* lexer);
+b32 token_from_character(Lexer* lexer);
 
-void lexer_make_token_range(Lexer* lexer, Token_Type type, char8* start, char8* end);
-void lexer_make_token_current(Lexer* lexer, Token_Type type, u32 length);
-Token_Type lexer_is_token_keyword(Token identifier_token); /* Checks if a token is an identifier token is a keyword */
+void make_token_range(Lexer* lexer, Token_Type type, char8* start, char8* end);
+void make_token(Lexer* lexer, Token_Type type, u32 length);
+Token_Type is_token_keyword(Token identifier_token); /* Checks if a token is an identifier token is a keyword */
 
 // Manouvering
-char8 lexer_peek(Lexer* lexer, u32 offset);                       /* Returns next character without advancing */
-Token lexer_peek_token(Lexer* lexer);                             /* Returns next token without advancing */
-Token lexer_peek_token_skip_trivia(Lexer* lexer);                 /* Returns next token without advancing */
-char8 lexer_current(Lexer* lexer);                                /* Returns current character */
-void  lexer_advance(Lexer* lexer);                                /* Advances characters by 1 */
-void  lexer_advance_by(Lexer* lexer, u32 count);                  /* Advances characters by count */
-b32   lexer_advance_if_match(Lexer* lexer, char8 expected);       /* Advance if current character matches expected char */
-b32   lexer_is_at_eof(Lexer* lexer);                              /* Checks if lexer is at the end of file */
-u32   lexer_get_character_offset(Lexer* lexer, char8* character); /* Returns the offset into the file, of the given character */
+char8 peek_character(Lexer* lexer, u32 offset);                       /* Returns next character without advancing */
+Token peek_token(Lexer* lexer);                             /* Returns next token without advancing */
+Token peek_token_skip_trivia(Lexer* lexer);                 /* Returns next token without advancing */
+char8 current_character(Lexer* lexer);                                /* Returns current character */
+void  advance_character(Lexer* lexer);                                /* Advances characters by 1 */
+void  advance_by(Lexer* lexer, u32 count);                  /* Advances characters by count */
+b32   advance_if_match(Lexer* lexer, char8 expected);       /* Advance if current character matches expected char */
+b32   lexer_at_eof(Lexer* lexer);                              /* Checks if lexer is at the end of file */
+u32   offset_of_character(Lexer* lexer, char8* character); /* Returns the offset into the file, of the given character */
 
 b32 is_token_datatype(Token token);
 b32 is_token_whitespace(Token token);
 b32 is_token_trivia(Token_Type type); // TODO(Fz): Receive a token, not token_type
 
 // Help
-void lexer_print_current_token(Lexer* lexer);
+void token_print(Lexer* lexer);
 
 #endif // LEXER_H

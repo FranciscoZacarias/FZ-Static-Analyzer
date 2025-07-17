@@ -161,31 +161,30 @@ typedef struct Parser {
 } Parser;
 
 void      parser_init(Parser* parser, Lexer* lexer);
-AST_Node* parser_parse_file(Parser* parser);
+AST_Node* parse_file(Parser* parser);
 
-void  parser_advance(Parser* parser, AST_Node* parent); /* Advances lexer's tokens by 1 */
-Token parser_peek_semantic(Parser* parser);
+void advance(Parser* parser, AST_Node* parent); /* Advances lexer's tokens by 1 */
 
 // Parse functions
-AST_Node* parser_parse_expression(Parser* parser);
-b32       parser_parse_whitespace(Parser* parser, AST_Node* parent);
-b32       parser_parse_comment_line(Parser* parser, AST_Node* parent);
-b32       parser_parse_comment_block(Parser* parser, AST_Node* parent);
-b32       parser_parse_preprocessor_directives(Parser* parser);
-b32       parser_parse_typedef(Parser* parser);
-b32       parser_parse_function_definition(Parser* parser);
-b32       parser_parse_declaration(Parser* parser);
-b32       parser_parse_variable_declaration(Parser* parse);
+AST_Node* parse_expression(Parser* parser);
+b32       parse_whitespace(Parser* parser, AST_Node* parent);
+b32       parse_comment_line(Parser* parser, AST_Node* parent);
+b32       parse_comment_block(Parser* parser, AST_Node* parent);
+b32       parse_preprocessor_directives(Parser* parser);
+b32       parse_typedef(Parser* parser);
+b32       parse_function_definition(Parser* parser);
+b32       parse_declaration(Parser* parser);
+b32       parse_variable_declaration(Parser* parse);
 
 // Expression
-AST_Node* parser_parse_expression(Parser* parser);
+AST_Node* parse_expression(Parser* parser);
 
 // AST
-AST_Node* ast_node_new(Arena* arena, u32 start_offset, u32 end_offset, AST_Node_Type type);
-void      ast_node_add_child(Arena* arena, AST_Node* parent, AST_Node* child);
-AST_Node* ast_make_binary(Arena* arena, AST_Node* parent, AST_Node* left, AST_Node* right);
+AST_Node* node_new(Arena* arena, u32 start_offset, u32 end_offset, AST_Node_Type type);
+void      node_add_child(Arena* arena, AST_Node* parent, AST_Node* child);
+AST_Node* make_binary(Arena* arena, AST_Node* parent, AST_Node* left, AST_Node* right);
 
-void parser_print_ast(Parser* parser, b32 print_whitespace, b32 print_comments);
-void parser_print_ast_node(Parser* parser, AST_Node* node, u32 indent, b32 print_whitespace, b32 print_comments);
+void print_ast(Parser* parser, b32 print_whitespace, b32 print_comments);
+void print_ast_node(Parser* parser, AST_Node* node, u32 indent, b32 print_whitespace, b32 print_comments);
 
 #endif // PARSER_H
