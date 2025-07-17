@@ -160,6 +160,8 @@ typedef struct Parser {
   AST_Node* root;
 } Parser;
 
+#if 0
+
 void      parser_init(Parser* parser, Lexer* lexer);
 AST_Node* parse_file(Parser* parser);
 
@@ -186,5 +188,6 @@ AST_Node* make_binary(Arena* arena, AST_Node* parent, AST_Node* left, AST_Node* 
 
 void print_ast(Parser* parser, b32 print_whitespace, b32 print_comments);
 void print_ast_node(Parser* parser, AST_Node* node, u32 indent, b32 print_whitespace, b32 print_comments);
+#endif
 
 #endif // PARSER_H

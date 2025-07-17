@@ -41,8 +41,9 @@ void entry_point(Command_Line command_line) {
     }
 
     Lexer lexer;
-    lexer_init(&lexer, path);
+    tokenize_file(&lexer, path);
 
+#if 0
     Parser parser;
     parser_init(&parser, &lexer);
 
@@ -51,6 +52,7 @@ void entry_point(Command_Line command_line) {
     print_ast(&parser, true, true);
 
 	  printf("\n------------------\n");
+#endif
   }
 
   system("pause");

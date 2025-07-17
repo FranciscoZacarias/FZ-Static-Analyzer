@@ -1,3 +1,5 @@
+#if 0
+
 ///////////////
 // Parser
 void parser_init(Parser* parser, Lexer* lexer) {
@@ -15,9 +17,6 @@ AST_Node* parse_file(Parser* parser) {
   while (parser->lexer->current_token.type != Token_End_Of_File) {
     // Top level constructs. Order matters.
     if (0) {
-    } else if (parse_preprocessor_directives(parser)) {
-    } else if (parse_typedef(parser)) {
-    } else if (parse_function_definition(parser)) {
     } else if (parse_declaration(parser)) {
     } else {
       advance(parser, parser->root);
@@ -54,7 +53,7 @@ void advance(Parser* parser, AST_Node* parent) {
   } else if (parse_comment_line(parser, parent)) {
   } else if (parse_comment_block(parser, parent)) {
   } else {
-    next_token(parser->lexer);
+    //next_token(parser->lexer);
   }
 }
 
@@ -125,6 +124,18 @@ b32 parse_declaration(Parser* parser) {
 
 b32 parse_variable_declaration(Parser* parser) {
   b32 result = false;
+
+  Token peek = parser->lexer->current_token;
+  if (is_token_datatype(peek)) {
+    AST_Node* type_node = node_new(parser->arena, peek.start_offset, peek.end_offset, AST_Node_Data_Type);
+    peek = peek_token(parser->lexer);
+    
+    if (peek.type == Token_Identifier) {
+      advance(parser, parser->root);
+      AST_Node* type_node = node_new(parser->arena, peek.start_offset, peek.end_offset, AST_Node_Data_Type);
+
+    }
+  }
   return result;
 }
 
@@ -212,3 +223,5 @@ void print_ast_node(Parser* parser, AST_Node* node, u32 indent, b32 print_whites
     print_ast_node(parser, node->children[i], indent + 1, print_whitespace, print_comments);
   }
 }
+
+#endif
