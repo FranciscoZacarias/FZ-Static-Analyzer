@@ -3,23 +3,32 @@
 #define FZ_ENABLE_ASSERT 1 
 #include "main.h"
 
-#define WORKSPACE_PATH Str8("D:\\work\\FZ-Static-Analyzer\\dummy")
 #define TEST_FILE Str8("expressions.c")
 
-void entry_point() {
+void entry_point(Command_Line command_line) {
   Arena* arena = arena_init();
   win32_enable_console(true);
   
-  File_List files = file_get_all_files_in_path_recursively(arena, WORKSPACE_PATH, (FileFlag_WhiteList | FileFlag_CFiles | FileFlag_HFiles | FileFlag_Dirs));
-  File_Node* current_file = files.first;
+  String8 pwd = path_get_working_directory();
+  String8 dir = path_get_current_directory_name(pwd);
+  if (string8_equal(dir, Str8("build"))) {
+    pwd = path_dirname(pwd); // move back if in build
+  }
+  pwd = path_join(arena, pwd, Str8("dummy"));
+  String8_List files = file_get_all_file_paths_recursively(arena, pwd);
+  for (String8_Node* node = files.first; node != NULL; node = node->next) {
+    String8 path = node->value;
+    b32 is_dot_c = file_has_extension(path, Str8(".c"));
+    b32 is_dot_h = file_has_extension(path, Str8(".h"));
+    if (!is_dot_c && !is_dot_h) {
+      continue;
+    }
 
-  while (current_file != NULL) {
     u64 index = 0;
-    if (string8_find_last(current_file->value.path, Str8("\\"), &index) && index+1 <= current_file->value.path.size-1) {
-      String8 file_string8 = string8_slice(current_file->value.path, index+1, current_file->value.path.size);
+    if (string8_find_last(path, Str8("\\"), &index) && index+1 <= path.size-1) {
+      String8 file_string8 = string8_slice(path, index+1, path.size);
 
       if (!string8_equal(file_string8, TEST_FILE)) {
-        current_file = current_file->next;
         continue;
       }
 
@@ -27,13 +36,12 @@ void entry_point() {
       printf_color(Terminal_Color_Bright_Green, cstring_from_string8(arena, file_string8));
       printf("\n");
     } else {
-      printf("Unable to parse cstring from: "); string8_printf(current_file->value.path); printf("\n");
-      current_file = current_file->next;
+      printf("Unable to parse cstring from: "); string8_printf(path); printf("\n");
       continue;
     }
 
     Lexer lexer;
-    lexer_init(&lexer, current_file->value.path);
+    lexer_init(&lexer, path);
 
     Parser parser;
     parser_init(&parser, &lexer);
@@ -43,8 +51,6 @@ void entry_point() {
     parser_print_ast(&parser, true, true);
 
 	  printf("\n------------------\n");
-
-    current_file = current_file->next;
   }
 
   system("pause");

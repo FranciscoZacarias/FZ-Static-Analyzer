@@ -76,7 +76,18 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
   _hInstance = hInstance;
   thread_context_init_and_attach(&MainThreadContext);
-  entry_point();
+
+  // Copy command line args early into owned buffer
+  static char8 owned_cmdline[2048];
+  u64 len = strlen(lpCmdLine);
+  if (len >= sizeof(owned_cmdline)) len = sizeof(owned_cmdline) - 1;
+  MemoryCopy(owned_cmdline, lpCmdLine, len);
+  owned_cmdline[len] = 0;
+
+  String8 string8_command_line = { .size = len, .str = owned_cmdline };
+
+  Command_Line command_line = command_line_parse(string8_command_line);
+  entry_point(command_line);
   return _ApplicationReturn;
 }
 

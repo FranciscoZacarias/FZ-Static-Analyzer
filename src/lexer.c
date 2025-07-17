@@ -678,13 +678,13 @@ b32 is_token_trivia(Token_Type type) {
           type == Token_Comment_Block_End);
 }
 
-b32 lexer_print_current_token(Lexer* lexer) {
-  if (!lexer) return false;
+void lexer_print_current_token(Lexer* lexer) {
+  if (!lexer) return;
 
   // Safety: check enum range
   if (lexer->current_token.type >= Token_Count) {
     printf("xx Token_Type out of range: %d\n", lexer->current_token.type);
-    return false;
+    return;
   }
 
   // Print token type
@@ -709,5 +709,5 @@ b32 lexer_print_current_token(Lexer* lexer) {
   }
   printf("\n");
 
-  return true;
+  return;
 }

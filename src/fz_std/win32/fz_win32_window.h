@@ -59,7 +59,7 @@ global b32 _IsCursorLocked      = false;
 global b32 IsApplicationRunning = true;
 global s32 WindowWidth  = 0.0f;
 global s32 WindowHeight = 0.0f;
-internal void entry_point(); // DOC(fz): Application layer must implement this function as it's entry point.
+internal void entry_point(Command_Line command_line); // DOC(fz): Application layer must implement this function as it's entry point.
 
 // Window
 internal void win32_init();
