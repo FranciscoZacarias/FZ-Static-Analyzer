@@ -1,6 +1,6 @@
 ///////////////
 // Lexer
-Token_Array tokenize_file(Lexer* lexer, String8 file_path) {
+Token_Array load_all_tokens(Lexer* lexer, String8 file_path) {
   MemoryZeroStruct(lexer);
  
   lexer->arena               = arena_init();
@@ -329,7 +329,7 @@ Token token_from_identifier_or_keyword(Lexer* lexer) {
   u32 len = 0;
   
   while (char8_is_alphanum(c) || c == '_') {
-    c = peek_character(lexer, len++); // advance(lexer);
+    c = peek_character(lexer, len++);
   }
   len -= 1;
   
@@ -415,18 +415,14 @@ Token token_from_string(Lexer* lexer) {
   u32 len = 0;
 
   c = peek_character(lexer, len + 1); // pre increment to skip open quote
-  //advance(lexer);
   
   while (!lexer_at_eof(lexer) && c != '"') {
     if (c == '\\') {
-      //advance(lexer); // Skip escape character
       c = peek_character(lexer, len++);
       if (!lexer_at_eof(lexer)) {
-        //advance(lexer); // Skip escaped character
         c = peek_character(lexer, len++);
       }
     } else {
-      //advance(lexer);
       c = peek_character(lexer, len++);
     }
   }
@@ -444,22 +440,17 @@ Token token_from_character(Lexer* lexer) {
   u32 len = 0;
 
   c = peek_character(lexer, len++);
-  // advance(lexer); // Skip opening quote
   
   if (!lexer_at_eof(lexer)) {
     if (c == '\\') {
-      c = peek_character(lexer, len++); // advance(lexer); // Skip escape character
+      c = peek_character(lexer, len++);
       if (!lexer_at_eof(lexer)) {
-        c = peek_character(lexer, len++); // advance(lexer); // Skip escaped character
+        c = peek_character(lexer, len++);
       }
     } else {
-      c = peek_character(lexer, len++); // advance(lexer); // Skip character
+      c = peek_character(lexer, len++);
     }
   }
-  
-  //if (c == '\'') {
-  //  c = peek_character(lexer, len++); // advance(lexer); // Skip closing quote
-  //}
   
   len -= 1; // We don't want the closing quote
   advance(lexer);
@@ -493,37 +484,37 @@ Token make_token(Lexer* lexer, Token_Type type, u32 length) {
 Token_Type is_token_keyword(Token identifier_token) {
   String8 value = identifier_token.value;
   
-  if (string8_equal(value, Str8("return")))    return Token_Keyword_Return;
-  if (string8_equal(value, Str8("if")))        return Token_Keyword_If;
-  if (string8_equal(value, Str8("else")))      return Token_Keyword_Else;
-  if (string8_equal(value, Str8("while")))     return Token_Keyword_While;
-  if (string8_equal(value, Str8("for")))       return Token_Keyword_For;
-  if (string8_equal(value, Str8("break")))     return Token_Keyword_Break;
-  if (string8_equal(value, Str8("continue")))  return Token_Keyword_Continue;
-  if (string8_equal(value, Str8("struct")))    return Token_Keyword_Struct;
-  if (string8_equal(value, Str8("union")))     return Token_Keyword_Union;
-  if (string8_equal(value, Str8("enum")))      return Token_Keyword_Enum;
-  if (string8_equal(value, Str8("typedef")))   return Token_Keyword_Typedef;
-  if (string8_equal(value, Str8("static")))    return Token_Keyword_Static;
-  if (string8_equal(value, Str8("void")))      return Token_Keyword_Void;
-  if (string8_equal(value, Str8("int")))       return Token_Keyword_Int;
-  if (string8_equal(value, Str8("char")))      return Token_Keyword_Char;
-  if (string8_equal(value, Str8("float")))     return Token_Keyword_Float;
-  if (string8_equal(value, Str8("double")))    return Token_Keyword_Double;
-  if (string8_equal(value, Str8("unsigned")))  return Token_Keyword_Unsigned;
-  if (string8_equal(value, Str8("signed")))    return Token_Keyword_Signed;
-  if (string8_equal(value, Str8("const")))     return Token_Keyword_Const;
-  if (string8_equal(value, Str8("extern")))    return Token_Keyword_Extern;
-  if (string8_equal(value, Str8("switch")))    return Token_Keyword_Switch;
-  if (string8_equal(value, Str8("case")))      return Token_Keyword_Case;
-  if (string8_equal(value, Str8("default")))   return Token_Keyword_Default;
-  if (string8_equal(value, Str8("sizeof")))    return Token_Keyword_Sizeof;
-  if (string8_equal(value, Str8("inline")))    return Token_Keyword_Inline;
-  if (string8_equal(value, Str8("do")))        return Token_Keyword_Do;
-  if (string8_equal(value, Str8("goto")))      return Token_Keyword_Goto;
-  if (string8_equal(value, Str8("restrict")))  return Token_Keyword_Restrict;
-  if (string8_equal(value, Str8("volatile")))  return Token_Keyword_Volatile;
-  if (string8_equal(value, Str8("register")))  return Token_Keyword_Register;
+  if (string8_equal(value, Str8("return")))    return Token_Return;
+  if (string8_equal(value, Str8("if")))        return Token_If;
+  if (string8_equal(value, Str8("else")))      return Token_Else;
+  if (string8_equal(value, Str8("while")))     return Token_While;
+  if (string8_equal(value, Str8("for")))       return Token_For;
+  if (string8_equal(value, Str8("break")))     return Token_Break;
+  if (string8_equal(value, Str8("continue")))  return Token_Continue;
+  if (string8_equal(value, Str8("struct")))    return Token_Struct;
+  if (string8_equal(value, Str8("union")))     return Token_Union;
+  if (string8_equal(value, Str8("enum")))      return Token_Enum;
+  if (string8_equal(value, Str8("typedef")))   return Token_Typedef;
+  if (string8_equal(value, Str8("static")))    return Token_Static;
+  if (string8_equal(value, Str8("void")))      return Token_Void;
+  if (string8_equal(value, Str8("int")))       return Token_Int;
+  if (string8_equal(value, Str8("char")))      return Token_Char;
+  if (string8_equal(value, Str8("float")))     return Token_Float;
+  if (string8_equal(value, Str8("double")))    return Token_Double;
+  if (string8_equal(value, Str8("unsigned")))  return Token_Unsigned;
+  if (string8_equal(value, Str8("signed")))    return Token_Signed;
+  if (string8_equal(value, Str8("const")))     return Token_Const;
+  if (string8_equal(value, Str8("extern")))    return Token_Extern;
+  if (string8_equal(value, Str8("switch")))    return Token_Switch;
+  if (string8_equal(value, Str8("case")))      return Token_Case;
+  if (string8_equal(value, Str8("default")))   return Token_Default;
+  if (string8_equal(value, Str8("sizeof")))    return Token_Sizeof;
+  if (string8_equal(value, Str8("inline")))    return Token_Inline;
+  if (string8_equal(value, Str8("do")))        return Token_Do;
+  if (string8_equal(value, Str8("goto")))      return Token_Goto;
+  if (string8_equal(value, Str8("restrict")))  return Token_Restrict;
+  if (string8_equal(value, Str8("volatile")))  return Token_Volatile;
+  if (string8_equal(value, Str8("register")))  return Token_Register;
     
   return Token_Identifier;
 }
@@ -541,71 +532,6 @@ char8 peek_character(Lexer* lexer, u32 offset) {
     return '\0';
   }
   return lexer->current_character[offset];
-}
-
-Token lexer_peek_token_skip_whitespace(Lexer* lexer) {
-  // Save current state (No MemoryCopy because we have all files loaded).
-  char8* saved_pos    = lexer->current_character;
-  u32 saved_line      = lexer->line;
-  u32 saved_column    = lexer->column;
-  Token saved_current = lexer->current_token;
-    
-  // Get next token
-  next_token(lexer);
-  Token next_non_whitespace_token = lexer->current_token;
-  while (is_token_whitespace(next_non_whitespace_token)) {
-    next_token(lexer);
-    next_non_whitespace_token = lexer->current_token;
-  }
-  
-  // Restore state
-  lexer->current_character = saved_pos;
-  lexer->line              = saved_line;
-  lexer->column            = saved_column;
-  lexer->current_token     = saved_current;
-    
-  return next_non_whitespace_token;
-}
-
-Token peek_token(Lexer* lexer) {
-  // Save current state (No MemoryCopy because we have all files loaded).
-  char8* saved_pos    = lexer->current_character;
-  u32 saved_line      = lexer->line;
-  u32 saved_column    = lexer->column;
-  Token saved_current = lexer->current_token;
-    
-  // Get next token
-  next_token(lexer);
-  Token result = lexer->current_token;
-    
-  // Restore state
-  lexer->current_character = saved_pos;
-  lexer->line              = saved_line;
-  lexer->column            = saved_column;
-  lexer->current_token     = saved_current;
-    
-  return result;
-}
-
-Token peek_token_skip_trivia(Lexer* lexer) {
-  char8* save_cursor  = lexer->current_character;
-  u32 save_line       = lexer->line;
-  u32 save_column     = lexer->column;
-  Token save_token    = lexer->current_token;
-
-  Token result;
-  do {
-    next_token(lexer);
-    result = lexer->current_token;
-  } while (is_token_trivia(result.type));
-
-  // Restore lexer state
-  lexer->current_character = save_cursor;
-  lexer->line              = save_line;
-  lexer->column            = save_column;
-  lexer->current_token     = save_token;
-
-  return result;
 }
 
 void advance(Lexer* lexer) {
@@ -627,38 +553,11 @@ void advance_by(Lexer* lexer, u32 count) {
   }
 }
 
-b32 advance_if_match(Lexer* lexer, char8 expected) {
-  if (*(lexer->current_character) == expected) {
-    advance(lexer);
-    return true;
-  }
-  return false;
-}
-
-b32 is_token_datatype(Token token) {
-  b32 result  = (token.type == Token_Keyword_Int      ||
-                 token.type == Token_Keyword_Float    ||
-                 token.type == Token_Keyword_Double   ||
-                 token.type == Token_Keyword_Char     ||
-                 token.type == Token_Keyword_Signed   ||
-                 token.type == Token_Keyword_Unsigned ||
-                 token.type == Token_Keyword_Void);
-  return result;
-}
-
 b32 is_token_whitespace(Token token) {
   b32 result = (token.type == Token_Space ||
                 token.type == Token_Tab   ||
                 token.type == Token_New_Line);
   return result;
-}
-
-b32 is_token_trivia(Token_Type type) {
-  return (type == Token_Space ||
-          type == Token_Tab ||
-          type == Token_New_Line ||
-          type == Token_Comment_Line ||
-          type == Token_Comment_Block);
 }
 
 void token_print(Token token) {

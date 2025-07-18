@@ -54,6 +54,15 @@ internal String8 string8_slice(String8 str, u64 start, u64 end) {
   return (String8){ .size = end - start, .str  = str.str + start };
 }
 
+internal String8 string8_copy(Arena* arena, String8 src) {
+  char8* new_data = ArenaPush(arena, char8, src.size);
+  MemoryCopy(new_data, src.str, src.size);
+  return (String8){
+    .size = src.size,
+    .str  = new_data,
+  };
+}
+
 internal b32 string8_find_last(String8 str, String8 substring, u64* index) {
   if (substring.size > str.size) return 0;
   b32 result = false;

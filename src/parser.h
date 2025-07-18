@@ -5,6 +5,7 @@ static const char8* ast_node_types [] = {
   "AST_Node_Unknown",
   "AST_Node_Program",
   "AST_Node_Declaration",
+  "AST_Node_EmptyDecl",
   "AST_Node_Data_Type",
   "AST_Node_Expression_End",
   
@@ -76,6 +77,7 @@ typedef enum AST_Node_Type {
   AST_Node_Unknown = 0,
   AST_Node_Program,
   AST_Node_Declaration,
+  AST_Node_EmptyDecl,
   AST_Node_Data_Type,
   AST_Node_Expression_End,
   
@@ -154,40 +156,44 @@ typedef struct AST_Node {
 ///////////////
 // Parser
 
+typedef struct Parser_Error {
+  String8 message;
+  u32 start_offset;
+  u32 end_offset;
+} Parser_Error;
+
 typedef struct Parser {
   Arena* arena;
-  Lexer* lexer;
   AST_Node* root;
+
+  Token_Array tokens;
+  u64 index;
+  
+  Parser_Error* errors;
+  u32 errors_count;
+  u32 errors_cap;
 } Parser;
+#define PARSER_ERROR_CAPACITY 32
 
-#if 0
+internal AST_Node* parse_ast(Parser* parser, Token_Array tokens);
+internal AST_Node* get_top_level_construct(Parser* parser);
 
-void      parser_init(Parser* parser, Lexer* lexer);
-AST_Node* parse_file(Parser* parser);
+// Parser token modifying
+internal Token* peek_token(Parser* parser, u64 offset);
+internal Token* advance_token(Parser* parser);
+internal b32    match_token(Parser* parser, Token_Type type);
+internal Token* assert_token(Parser* parser, Token_Type type);
 
-void advance(Parser* parser, AST_Node* parent); /* Advances lexer's tokens by 1 */
-
-// Parse functions
-AST_Node* parse_expression(Parser* parser);
-b32       parse_whitespace(Parser* parser, AST_Node* parent);
-b32       parse_comment_line(Parser* parser, AST_Node* parent);
-b32       parse_comment_block(Parser* parser, AST_Node* parent);
-b32       parse_preprocessor_directives(Parser* parser);
-b32       parse_typedef(Parser* parser);
-b32       parse_function_definition(Parser* parser);
-b32       parse_declaration(Parser* parser);
-b32       parse_variable_declaration(Parser* parse);
-
-// Expression
-AST_Node* parse_expression(Parser* parser);
+// Parser help
+internal AST_Node* parse_preprocessor(Parser* parser);
+internal void      parser_emit_error(Parser* parser, u32 start_offset, u32 end_offset, String8 message);
 
 // AST
-AST_Node* node_new(Arena* arena, u32 start_offset, u32 end_offset, AST_Node_Type type);
-void      node_add_child(Arena* arena, AST_Node* parent, AST_Node* child);
-AST_Node* make_binary(Arena* arena, AST_Node* parent, AST_Node* left, AST_Node* right);
+internal AST_Node* node_new(Arena* arena, u32 start_offset, u32 end_offset, AST_Node_Type type);
+internal void      node_add_child(Arena* arena, AST_Node* parent, AST_Node* child);
+internal AST_Node* make_binary(Arena* arena, AST_Node* parent, AST_Node* left, AST_Node* right);
 
-void print_ast(Parser* parser, b32 print_whitespace, b32 print_comments);
-void print_ast_node(Parser* parser, AST_Node* node, u32 indent, b32 print_whitespace, b32 print_comments);
-#endif
+internal void print_ast(Parser* parser, Lexer* lexer, b32 print_whitespace, b32 print_comments);
+internal void print_ast_node(Parser* parser, Lexer* lexer, AST_Node* node, u32 indent, b32 print_whitespace, b32 print_comments);
 
 #endif // PARSER_H

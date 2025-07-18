@@ -1,5 +1,7 @@
 // raddbg 0.9.20 project file
 
+recent_file: path: "src/parser.c"
+recent_file: path: "src/main.c"
 recent_file: path: "src/lexer.c"
 recent_file: path: "src/fz_std/fz_string.c"
 target:
@@ -13,8 +15,18 @@ type_view:
   type: String8
   expr: "str, size"
 }
+type_view:
+{
+  type: Token_Array
+  expr: "tokens, count"
+}
 breakpoint:
 {
-  source_location: "src/lexer.c:441:1"
-  hit_count: 3
+  source_location: "src/parser.c:18:18"
+  hit_count: 1
+}
+watch_pin:
+{
+  expression: ""
+  source_location: "src/parser.c:23:1"
 }

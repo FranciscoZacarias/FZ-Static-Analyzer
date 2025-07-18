@@ -3,7 +3,7 @@
 #define FZ_ENABLE_ASSERT 1 
 #include "main.h"
 
-#define TEST_FILE Str8("string_literals.c")
+#define TEST_FILE Str8("top_level_constructs.c")
 
 void entry_point(Command_Line command_line) {
   Arena* arena = arena_init();
@@ -16,6 +16,7 @@ void entry_point(Command_Line command_line) {
   }
   pwd = path_join(arena, pwd, Str8("dummy"));
   String8_List files = file_get_all_file_paths_recursively(arena, pwd);
+
   for (String8_Node* node = files.first; node != NULL; node = node->next) {
     String8 path = node->value;
     b32 is_dot_c = file_has_extension(path, Str8(".c"));
@@ -28,6 +29,10 @@ void entry_point(Command_Line command_line) {
     if (string8_find_last(path, Str8("\\"), &index) && index+1 <= path.size-1) {
       String8 file_string8 = string8_slice(path, index+1, path.size);
 
+      if (!string8_equal(file_string8, TEST_FILE)) {
+        continue;
+      }
+
       printf("\n==== New File ====\n> ");
       printf_color(Terminal_Color_Bright_Green, cstring_from_string8(arena, file_string8));
       printf("\n");
@@ -37,18 +42,15 @@ void entry_point(Command_Line command_line) {
     }
 
     Lexer lexer;
-    tokenize_file(&lexer, path);
-
-#if 0
+    Token_Array tokens = load_all_tokens(&lexer, path);
+    
     Parser parser;
-    parser_init(&parser, &lexer);
+    AST_Node* ast = parse_ast(&parser, tokens);
 
-    parse_file(&parser);
     printf("\n");
-    print_ast(&parser, true, true);
+    print_ast(&parser, &lexer, true, true);
 
 	  printf("\n------------------\n");
-#endif
   }
 
   system("pause");

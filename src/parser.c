@@ -1,155 +1,127 @@
-#if 0
 
 ///////////////
 // Parser
-void parser_init(Parser* parser, Lexer* lexer) {
+internal AST_Node* parse_ast(Parser* parser, Token_Array tokens) {
   MemoryZeroStruct(parser);
 
-  parser->arena = arena_init();
-  parser->lexer = lexer;
-  parser->root  = node_new(parser->arena, 0, 0, AST_Node_Program);
+  parser->arena  = arena_init();
+  parser->root   = node_new(parser->arena, 0, 0, AST_Node_Program);
 
-  next_token(lexer);
-}
+  parser->tokens = tokens;
+  parser->index  = 0;
 
-AST_Node* parse_file(Parser* parser) {
+  parser->errors       = ArenaPush(parser->arena, Parser_Error, PARSER_ERROR_CAPACITY);
+  parser->errors_cap   = PARSER_ERROR_CAPACITY;
+  parser->errors_count = 0;
 
-  while (parser->lexer->current_token.type != Token_End_Of_File) {
-    // Top level constructs. Order matters.
-    if (0) {
-    } else if (parse_declaration(parser)) {
+  while ((peek_token(parser, 0))->type != Token_End_Of_File) {
+    AST_Node* top_level_item = get_top_level_construct(parser);
+
+    if (top_level_item) {
+      node_add_child(parser->arena, parser->root, top_level_item);
     } else {
-      advance(parser, parser->root);
+      // Basic error recovery
+      advance_token(parser);
     }
   }
+
   return parser->root;
 }
 
-b32 parse_whitespace(Parser* parser, AST_Node* parent) {
-  b32 result = false;
-  Token first_token = parser->lexer->current_token;
-  if (first_token.type == Token_Space || first_token.type == Token_Tab || first_token.type == Token_New_Line) {
-    AST_Node_Type node_type = (first_token.type == Token_Space) ? AST_Node_Space :
-                              (first_token.type == Token_Tab)   ? AST_Node_Tab : AST_Node_New_Line;
-    u32 start_offset = first_token.start_offset;
-    u32 end_offset   = first_token.end_offset;
+internal AST_Node* get_top_level_construct(Parser* parser) {
+  Token* token = peek_token(parser, 0);
+
+  if (token->type == Token_Unknown || token->type == Token_End_Of_File) {
+    return NULL;
+  }
+
+  // Empty declaration
+  if (token->type == Token_Semicolon) {
+    advance_token(parser);
+    return node_new(parser->arena, token->start_offset, token->end_offset, AST_Node_EmptyDecl);
+  }
   
-    // Consume consecutive tokens of same type
-    while (parser->lexer->current_token.type == first_token.type) {
-      end_offset = parser->lexer->current_token.end_offset;
-      next_token(parser->lexer);
-    }
-    AST_Node* node = node_new(parser->arena, start_offset, end_offset, node_type);
-    node_add_child(parser->arena, parent, node);
-    result = true;
+  // Preprocessor
+  if (token->type == Token_Preprocessor_Hash) {
+    advance_token(parser);
+    return parse_preprocessor(parser);
   }
 
+  //return parse_decl_or_function(parser);
+  return NULL;
+}
+
+internal Token* peek_token(Parser* parser, u64 offset) {
+  u64 i = parser->index + offset;
+  if (i >= parser->tokens.count) return 0;
+  return &parser->tokens.tokens[i];
+}
+
+internal Token* advance_token(Parser* parser) {
+  Token* result = NULL;
+  if (parser->index < parser->tokens.count) {
+    result = &parser->tokens.tokens[parser->index];
+    parser->index += 1;
+  }
   return result;
 }
 
-void advance(Parser* parser, AST_Node* parent) {
+internal b32 match_token(Parser* parser, Token_Type type) {
+  Token* t = peek_token(parser, 0);
+  if (t && t->type == type) {
+    advance_token(parser);
+    return 1;
+  }
+  return 0;
+}
+
+internal Token* assert_token(Parser* parser, Token_Type type) {
+  Token* t = peek_token(parser, 0);
+  if (!t || t->type != type) {
+    ERROR_MESSAGE_AND_EXIT("Expected token %s but got %s.", ast_node_types[type], ast_node_types[t->type]);
+    exit(1);
+  }
+  return t;
+}
+
+internal AST_Node* parse_preprocessor(Parser* parser) {
+  Token_Type preprocessor_type = Token_Unknown;
+  Token* preprocessor = assert_token(parser, Token_Identifier);
+
   if (0) {
-  } else if (parse_whitespace(parser, parent)) {
-  } else if (parse_comment_line(parser, parent)) {
-  } else if (parse_comment_block(parser, parent)) {
-  } else {
-    //next_token(parser->lexer);
-  }
-}
-
-b32 parse_comment_line(Parser* parser, AST_Node* parent) {
-  b32 result = false;
-  if (parser->lexer->current_token.type == Token_Comment_Line) {
-    next_token(parser->lexer);
-    Token current_token = parser->lexer->current_token;
-    u32 start_offset = parser->lexer->current_token.start_offset;
-    while (current_token.type != Token_New_Line) {
-      next_token(parser->lexer);
-      current_token = parser->lexer->current_token;
+  } else if (string8_equal(preprocessor->value, Str8("include"))) {
+    Token* next = advance_token(parser);
+    if (next->type == Token_Less) {
+      
+    } else if (next->type == Token_String_Literal) {
+      
+    } else {
+      ERROR_MESSAGE_AND_EXIT("Unhandled preprocessor: %s", token_type_names[next->type]);
     }
-    u32 end_offset = parser->lexer->current_token.end_offset;
-    node_add_child(parser->arena, parent, node_new(parser->arena, start_offset, end_offset, AST_Node_Comment_Line));
-    result = true;
-  }
-  return result;
-}
 
-b32 parse_comment_block(Parser* parser, AST_Node* parent) {
-  b32 result = false;
-  if (parser->lexer->current_token.type == Token_Comment_Block_Start) {
-    next_token(parser ->lexer);
-    Token current_token = parser->lexer->current_token;
-    u32 start_offset = parser->lexer->current_token.start_offset;
-    while (current_token.type != Token_Comment_Block_End) {
-      next_token(parser->lexer);
-      current_token = parser->lexer->current_token;
-    }
-    u32 end_offset = parser->lexer->current_token.end_offset - 2; // We don't want the */ to be in in the offset range
-    node_add_child(parser->arena, parent, node_new(parser->arena, start_offset, end_offset, AST_Node_Comment_Block));
-    result = true;
-  }
-  return result;
-}
-
-b32 parse_preprocessor_directives(Parser* parser) {
-  b32 result = false;
-  return result;
-}
-
-b32 parse_typedef(Parser* parser) {
-  b32 result = false;
-  return result;
-}
-
-b32 parse_function_definition(Parser* parser) {
-  b32 result = false;
-  return result;
-}
-
-b32 parse_declaration(Parser* parser) {
-  b32 result = false;
-
-  // Try variable declaration first
-  if (parse_variable_declaration(parser)) {
-    result = true;
-  }
- 
-  // TODO: Add other declaration types here
-  // if (parser_parse_struct_declaration(parser)) return true;
-  // if (parser_parse_union_declaration(parser)) return true;
-  // if (parser_parse_enum_declaration(parser)) return true;
- 
-  return result;
-}
-
-b32 parse_variable_declaration(Parser* parser) {
-  b32 result = false;
-
-  Token peek = parser->lexer->current_token;
-  if (is_token_datatype(peek)) {
-    AST_Node* type_node = node_new(parser->arena, peek.start_offset, peek.end_offset, AST_Node_Data_Type);
-    peek = peek_token(parser->lexer);
+  } else if (string8_equal(preprocessor->value, Str8("define"))) {
     
-    if (peek.type == Token_Identifier) {
-      advance(parser, parser->root);
-      AST_Node* type_node = node_new(parser->arena, peek.start_offset, peek.end_offset, AST_Node_Data_Type);
-
-    }
   }
-  return result;
+
+  return NULL;
 }
 
+internal void parser_emit_error(Parser* parser, u32 start_offset, u32 end_offset, String8 message) {
+  if (parser->errors_count >= parser->errors_cap) {
+    return;
+  }
 
-AST_Node* parse_expression(Parser* parser) {
-  AST_Node* result = NULL;
-  return result;
+  Parser_Error* error = &parser->errors[parser->errors_count++];
+  error->message      = string8_copy(parser->arena, message);
+  error->start_offset = start_offset;
+  error->end_offset   = end_offset;
 }
 
 ///////////////
 // AST
 
 // TODO(fz): Change arg parser for Arena*
-AST_Node* node_new(Arena* arena, u32 start_offset, u32 end_offset, AST_Node_Type type) {
+internal AST_Node* node_new(Arena* arena, u32 start_offset, u32 end_offset, AST_Node_Type type) {
   AST_Node* node       = arena_push(arena, sizeof(AST_Node));
   node->start_offset   = start_offset;
   node->end_offset     = end_offset;
@@ -159,7 +131,7 @@ AST_Node* node_new(Arena* arena, u32 start_offset, u32 end_offset, AST_Node_Type
   return node;
 }
 
-void node_add_child(Arena* arena, AST_Node* parent, AST_Node* child) {
+internal void node_add_child(Arena* arena, AST_Node* parent, AST_Node* child) {
   if (parent->children_count == 0) {
     parent->children = ArenaPush(arena, AST_Node*, 4);
   }
@@ -175,17 +147,17 @@ void node_add_child(Arena* arena, AST_Node* parent, AST_Node* child) {
   parent->children[parent->children_count++] = child;
 }
 
-AST_Node* make_binary(Arena* arena, AST_Node* parent, AST_Node* left, AST_Node* right) {
+internal AST_Node* make_binary(Arena* arena, AST_Node* parent, AST_Node* left, AST_Node* right) {
   node_add_child(arena, parent, left);
   node_add_child(arena, parent, right);
   return parent;
 }
 
-void print_ast(Parser* parser, b32 print_whitespace, b32 print_comments) {
-  print_ast_node(parser, parser->root, 0, print_whitespace, print_comments);
+internal void print_ast(Parser* parser, Lexer* lexer, b32 print_whitespace, b32 print_comments) {
+  print_ast_node(parser, lexer, parser->root, 0, print_whitespace, print_comments);
 }
 
-void print_ast_node(Parser* parser, AST_Node* node, u32 indent, b32 print_whitespace, b32 print_comments) {
+internal void print_ast_node(Parser* parser, Lexer* lexer, AST_Node* node, u32 indent, b32 print_whitespace, b32 print_comments) {
   if (!node) return;
   if ((node->type == AST_Node_Space || node->type == AST_Node_Tab || node->type == AST_Node_New_Line) && !print_whitespace) return;
   if ((node->type == AST_Node_Comment_Line || node->type == AST_Node_Comment_Block) && !print_comments) return;
@@ -216,12 +188,10 @@ void print_ast_node(Parser* parser, AST_Node* node, u32 indent, b32 print_whites
   }
   
   u32 size = node->end_offset - node->start_offset;
-  printf_color(color, "{.type=%s, .size=%d}: %.*s", ast_node_types[node->type], size, size, parser->lexer->file.data.str + node->start_offset);
+  printf_color(color, "{.type=%s, .size=%d}: %.*s", ast_node_types[node->type], size, size, lexer->file.data.str + node->start_offset);
   printf("\n");
   
   for (u32 i = 0; i < node->children_count; i += 1) {
-    print_ast_node(parser, node->children[i], indent + 1, print_whitespace, print_comments);
+    print_ast_node(parser, lexer, node->children[i], indent + 1, print_whitespace, print_comments);
   }
 }
-
-#endif
