@@ -42,7 +42,7 @@ Token_Array tokenize_file(Lexer* lexer, String8 file_path) {
 // - String and character literals
 // - Single-character operators and punctuation
 // - Unknown/Error tokens
-Token next_token(Lexer* lexer) {
+Token_Array next_token(Lexer* lexer) {
   MemoryZeroStruct(&lexer->current_token);
 
   char8 c = *(lexer->current_character);
@@ -51,7 +51,7 @@ Token next_token(Lexer* lexer) {
   } else if (char8_is_space(c)) {
     return token_from_whitespace(lexer);
   } else if (c == '#') {
-    return make_token(lexer, Token_Preprocessor_Hash, 1);  
+    return token_from_preprocessor(lexer);
   } else if ((c == '/' && (peek_character(lexer, 1) == '/' || peek_character(lexer, 1) == '*')) || (c == '*' && peek_character(lexer, 1) == '/')) {
     return token_from_comment(lexer);
   } else if (char8_is_alpha(c) || c == '_') {
@@ -166,157 +166,123 @@ b32 token_from_operator(Lexer* lexer) {
     case '+':
       if (next == '+') {
         make_token(lexer, Token_Increment, 2);
-        advance_by(lexer, 2);
       } else if (next == '=') {
         make_token(lexer, Token_Plus_Assign, 2);
-        advance_by(lexer, 2);
       } else {
         make_token(lexer, Token_Plus, 1);
-        advance(lexer);
       }
       return true;
       
     case '-':
       if (next == '-') {
         make_token(lexer, Token_Decrement, 2);
-        advance_by(lexer, 2);
       } else if (next == '=') {
         make_token(lexer, Token_Minus_Assign, 2);
-        advance_by(lexer, 2);
       } else if (next == '>') {
         make_token(lexer, Token_Arrow, 2);
-        advance_by(lexer, 2);
       } else {
         make_token(lexer, Token_Minus, 1);
-        advance(lexer);
       }
       return true;
       
     case '*':
       if (next == '=') {
         make_token(lexer, Token_Multiply_Assign, 2);
-        advance_by(lexer, 2);
       } else {
         make_token(lexer, Token_Multiply, 1);
-        advance(lexer);
       }
       return true;
       
     case '/':
       if (next == '=') {
         make_token(lexer, Token_Divide_Assign, 2);
-        advance_by(lexer, 2);
       } else {
         make_token(lexer, Token_Divide, 1);
-        advance(lexer);
       }
       return true;
       
     case '%':
       if (next == '=') {
         make_token(lexer, Token_Modulo_Assign, 2);
-        advance_by(lexer, 2);
       } else {
         make_token(lexer, Token_Modulo, 1);
-        advance(lexer);
       }
       return true;
       
     case '=':
       if (next == '=') {
         make_token(lexer, Token_Equal, 2);
-        advance_by(lexer, 2);
       } else {
         make_token(lexer, Token_Assign, 1);
-        advance(lexer);
       }
       return true;
       
     case '!':
       if (next == '=') {
         make_token(lexer, Token_Not_Equal, 2);
-        advance_by(lexer, 2);
       } else {
         make_token(lexer, Token_Not, 1);
-        advance(lexer);
       }
       return true;
       
     case '<':
       if (next == '=') {
         make_token(lexer, Token_Less_Equal, 2);
-        advance_by(lexer, 2);
       } else if (next == '<') {
         if (peek_character(lexer, 2) == '=') {
           make_token(lexer, Token_Left_Shift_Assign, 3);
-          advance_by(lexer, 3);
         } else {
           make_token(lexer, Token_Left_Shift, 2);
-          advance_by(lexer, 2);
         }
       } else {
         make_token(lexer, Token_Less, 1);
-        advance(lexer);
       }
       return true;
       
     case '>':
       if (next == '=') {
         make_token(lexer, Token_Greater_Equal, 2);
-        advance_by(lexer, 2);
       } else if (next == '>') {
         if (peek_character(lexer, 2) == '=') {
           make_token(lexer, Token_Right_Shift_Assign, 3);
-          advance_by(lexer, 3);
         } else {
           make_token(lexer, Token_Right_Shift, 2);
-          advance_by(lexer, 2);
         }
       } else {
         make_token(lexer, Token_Greater, 1);
-        advance(lexer);
       }
       return true;
       
     case '&':
       if (next == '&') {
         make_token(lexer, Token_Logical_And, 2);
-        advance_by(lexer, 2);
       } else if (next == '=') {
         make_token(lexer, Token_Bit_And_Assign, 2);
-        advance_by(lexer, 2);
       } else {
         make_token(lexer, Token_Bit_And, 1);
-        advance(lexer);
       }
       return true;
       
     case '|':
       if (next == '|') {
         make_token(lexer, Token_Logical_Or, 2);
-        advance_by(lexer, 2);
       } else if (next == '=') {
         make_token(lexer, Token_Bit_Or_Assign, 2);
-        advance_by(lexer, 2);
       } else {
         make_token(lexer, Token_Bit_Or, 1);
-        advance(lexer);
       }
       return true;
       
     case '^':
       if (next == '=') {
         make_token(lexer, Token_Bit_Xor_Assign, 2);
-        advance_by(lexer, 2);
       } else {
         make_token(lexer, Token_Bit_Xor, 1);
-        advance(lexer);
       }
       return true;
       
     case '~':
       make_token(lexer, Token_Bit_Not, 1);
-      advance(lexer);
       return true;
   }
   
@@ -329,23 +295,18 @@ b32 token_from_delimiter(Lexer* lexer) {
   switch (c) {
     case ';':
       make_token(lexer, Token_Semicolon, 1);
-      advance(lexer);
       return true;
     case ',':
       make_token(lexer, Token_Comma, 1);
-      advance(lexer);
       return true;
     case '.':
       make_token(lexer, Token_Dot, 1);
-      advance(lexer);
       return true;
     case ':':
       make_token(lexer, Token_Colon, 1);
-      advance(lexer);
       return true;
     case '?':
       make_token(lexer, Token_Question, 1);
-      advance(lexer);
       return true;
   }
   
@@ -358,27 +319,21 @@ b32 token_from_braces(Lexer* lexer) {
   switch (c) {
     case '(':
       make_token(lexer, Token_Open_Parenthesis, 1);
-      advance(lexer);
       return true;
     case ')':
       make_token(lexer, Token_Close_Parenthesis, 1);
-      advance(lexer);
       return true;
     case '{':
       make_token(lexer, Token_Open_Brace, 1);
-      advance(lexer);
       return true;
     case '}':
       make_token(lexer, Token_Close_Brace, 1);
-      advance(lexer);
       return true;
     case '[':
       make_token(lexer, Token_Open_Bracket, 1);
-      advance(lexer);
       return true;
     case ']':
       make_token(lexer, Token_Close_Bracket, 1);
-      advance(lexer);
       return true;
   }
   
@@ -404,108 +359,126 @@ Token token_from_identifier_or_keyword(Lexer* lexer) {
 }
 
 Token token_from_number(Lexer* lexer) {
-  char8 c = *lexer->current_character;
   
   char8* start = lexer->current_character;
+  char8 c      = *start;
   Token_Type token_type = Token_Int_Literal;
   
+  u32 len = 0;
+
   // Handle hex numbers
   if (c == '0' && (peek_character(lexer, 1) == 'x' || peek_character(lexer, 1) == 'X')) {
-    advance_by(lexer, 2);
-    while (isxdigit(*lexer->current_character)) {
-      advance(lexer);
+    len += 2;
+    c = peek_character(lexer, len);
+
+    while (char8_is_hex_digit(c)) {
+      c = peek_character(lexer, len++);
     }
     token_type = Token_Hex_Literal;
   } else {
     // Handle decimal numbers
-    while (char8_is_digit(*lexer->current_character)) {
-      advance(lexer);
+    while (char8_is_digit(c)) {
+      c = peek_character(lexer, len++);
     }
     
     // Handle floating point
-    if (*lexer->current_character == '.') {
-      advance(lexer);
-      while (char8_is_digit(*lexer->current_character)) {
-        advance(lexer);
+    if (c == '.') {
+      c = peek_character(lexer, len++);
+      while (char8_is_digit(c)) {
+        c = peek_character(lexer, len++);
       }
       token_type = Token_Float_Literal;
     }
     
     // Handle scientific notation
-    if (*lexer->current_character == 'e' || *lexer->current_character == 'E') {
-      advance(lexer);
-      if (*lexer->current_character == '+' || *lexer->current_character == '-') {
-        advance(lexer);
+    if (c == 'e' || c == 'E') {
+      c = peek_character(lexer, len++);
+      if (c == '+' || c == '-') {
+        c = peek_character(lexer, len++);
       }
-      while (char8_is_digit(*lexer->current_character)) {
-        advance(lexer);
+      while (char8_is_digit(c)) {
+        c = peek_character(lexer, len++);
       }
       token_type = Token_Float_Literal;
     }
   }
   
   // Handle suffixes
-  char8 suffix = *lexer->current_character;
+  char8 suffix = c;
   if (suffix == 'f' || suffix == 'F') {
-    advance(lexer);
+    c = peek_character(lexer, len++);
     token_type = Token_Float_Literal;
   } else if (suffix == 'l' || suffix == 'L' || suffix == 'u' || suffix == 'U') {
-    advance(lexer);
+    c = peek_character(lexer, len++);
     // Handle UL, LU combinations
-    char8 next_suffix = *lexer->current_character;
+    char8 next_suffix = c;
     if ((suffix == 'u' || suffix == 'U') && (next_suffix == 'l' || next_suffix == 'L')) {
-      advance(lexer);
+      c = peek_character(lexer, len++);
     } else if ((suffix == 'l' || suffix == 'L') && (next_suffix == 'u' || next_suffix == 'U')) {
-      advance(lexer);
+      c = peek_character(lexer, len++);
     }
   }
   
-  return make_token_range(lexer, token_type, start, lexer->current_character);
+  len -= 1; // len will go to the next non valid character, which is a different token
+  return make_token_range(lexer, token_type, start, start + len);
 }
 
 
 Token token_from_string(Lexer* lexer) {
   char8* start = lexer->current_character;
-  advance(lexer); // Skip opening quote
+  char8 c = *start;
+  u32 len = 0;
+
+  c = peek_character(lexer, len++); // Skip opening quote
+  //advance(lexer);
   
-  while (!lexer_at_eof(lexer) && *lexer->current_character != '"') {
-    if (*lexer->current_character == '\\') {
-      advance(lexer); // Skip escape character
+  while (!lexer_at_eof(lexer) && c != '"') {
+    if (c == '\\') {
+      //advance(lexer); // Skip escape character
+      c = peek_character(lexer, len++);
       if (!lexer_at_eof(lexer)) {
-        advance(lexer); // Skip escaped character
+        //advance(lexer); // Skip escaped character
+        c = peek_character(lexer, len++);
       }
     } else {
-      advance(lexer);
+      //advance(lexer);
+      c = peek_character(lexer, len++);
     }
   }
   
-  if (*lexer->current_character == '"') {
-    advance(lexer); // Skip closing quote
-  }
-  
-  return make_token_range(lexer, Token_String_Literal, start, lexer->current_character);
+  // We don't subtract from len because len is at '"', which we don't care about
+  return make_token_range(lexer, Token_String_Literal, start, start + len);
 }
 
 Token token_from_character(Lexer* lexer) {
   char8* start = lexer->current_character;
-  advance(lexer); // Skip opening quote
+
+  char8 c = *start;
+  u32 len = 0;
+
+  c = peek_character(lexer, len++);
+  // advance(lexer); // Skip opening quote
   
   if (!lexer_at_eof(lexer)) {
-    if (*lexer->current_character == '\\') {
-      advance(lexer); // Skip escape character
+    if (c == '\\') {
+      c = peek_character(lexer, len++); // advance(lexer); // Skip escape character
       if (!lexer_at_eof(lexer)) {
-        advance(lexer); // Skip escaped character
+        c = peek_character(lexer, len++); // advance(lexer); // Skip escaped character
       }
     } else {
-      advance(lexer); // Skip character
+      c = peek_character(lexer, len++); // advance(lexer); // Skip character
     }
   }
   
-  if (*lexer->current_character == '\'') {
-    advance(lexer); // Skip closing quote
-  }
+  //if (c == '\'') {
+  //  c = peek_character(lexer, len++); // advance(lexer); // Skip closing quote
+  //}
   
-  return make_token_range(lexer, Token_Char_Literal, start, lexer->current_character);
+  return make_token_range(lexer, Token_Char_Literal, start, start + len);
+}
+
+Token token_from_preprocessor(Lexer* lexer) {
+  
 }
 
 Token make_token_range(Lexer* lexer, Token_Type type, char8* start, char8* end) {

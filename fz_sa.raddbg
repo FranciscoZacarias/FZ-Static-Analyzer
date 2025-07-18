@@ -1,0 +1,20 @@
+// raddbg 0.9.20 project file
+
+recent_file: path: "src/lexer.c"
+recent_file: path: "src/fz_std/fz_string.c"
+target:
+{
+  executable: "build/fz_sa.exe"
+  working_directory: "build/"
+  enabled: 1
+}
+type_view:
+{
+  type: String8
+  expr: "str, size"
+}
+breakpoint:
+{
+  source_location: "src/lexer.c:21:21"
+  hit_count: 1
+}

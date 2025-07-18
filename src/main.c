@@ -3,7 +3,7 @@
 #define FZ_ENABLE_ASSERT 1 
 #include "main.h"
 
-#define TEST_FILE Str8("expressions_easy.c")
+#define TEST_FILE Str8("string_literals.c")
 
 void entry_point(Command_Line command_line) {
   Arena* arena = arena_init();

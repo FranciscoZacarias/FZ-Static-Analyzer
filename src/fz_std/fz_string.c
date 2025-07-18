@@ -261,7 +261,13 @@ internal b32 char8_is_alpha_lower(char8 c) {
 }
 
 internal b32 char8_is_digit(char8 c) {
-  return c >= '1' && c <= '9';
+  return c >= '0' && c <= '9';
+}
+
+internal b32 char8_is_hex_digit(char8 c) {
+  return (c >= '0' && c <= '9') ||
+         (c >= 'a' && c <= 'f') ||
+         (c >= 'A' && c <= 'F');
 }
 
 internal b32 char8_is_symbol(char8 c) {

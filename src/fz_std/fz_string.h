@@ -62,6 +62,7 @@ internal b32   char8_is_alphanum(char8 c);
 internal b32   char8_is_alpha_upper(char8 c);
 internal b32   char8_is_alpha_lower(char8 c);
 internal b32   char8_is_digit(char8 c);
+internal b32   char8_is_hex_digit(char8 c);
 internal b32   char8_is_symbol(char8 c);
 internal b32   char8_is_space(char8 c);
 internal char8 char8_to_upper(char8 c);
