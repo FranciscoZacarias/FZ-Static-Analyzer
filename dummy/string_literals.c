@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "local.h"
+# include "local.h"
 
 int main() {
   char a = 'a';
@@ -7,7 +7,6 @@ int main() {
   char q = '\'';
   const char* s1 = "Hello";
   const char* s2 = "World";
-  const char* s3 = "Hello" " " "World";  // Concatenated
   const char* escaped = "Line1\nLine2\tTabbed";
   const wchar_t* ws = L"Wide string";
 

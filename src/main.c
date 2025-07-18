@@ -28,10 +28,6 @@ void entry_point(Command_Line command_line) {
     if (string8_find_last(path, Str8("\\"), &index) && index+1 <= path.size-1) {
       String8 file_string8 = string8_slice(path, index+1, path.size);
 
-      if (!string8_equal(file_string8, TEST_FILE)) {
-        continue;
-      }
-
       printf("\n==== New File ====\n> ");
       printf_color(Terminal_Color_Bright_Green, cstring_from_string8(arena, file_string8));
       printf("\n");

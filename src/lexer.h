@@ -260,14 +260,14 @@ typedef struct Token_Array {
 #define TOKEN_ARRAY_SIZE 4096
 
 Token_Array tokenize_file(Lexer* lexer, String8 file_path); /* Initializes the lexer with workspace path */
-Token_Array next_token(Lexer* lexer);
+Token       next_token(Lexer* lexer);
 
 // Tokening
 Token token_from_whitespace(Lexer* lexer);
 Token token_from_comment(Lexer* lexer);
-b32   token_from_operator(Lexer* lexer);
-b32   token_from_delimiter(Lexer* lexer);
-b32   token_from_braces(Lexer* lexer);
+Token token_from_operator(Lexer* lexer);
+Token token_from_delimiter(Lexer* lexer);
+Token token_from_braces(Lexer* lexer);
 Token token_from_identifier_or_keyword(Lexer* lexer);
 Token token_from_number(Lexer* lexer);
 Token token_from_string(Lexer* lexer);

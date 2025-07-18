@@ -15,6 +15,6 @@ type_view:
 }
 breakpoint:
 {
-  source_location: "src/lexer.c:21:21"
-  hit_count: 1
+  source_location: "src/lexer.c:441:1"
+  hit_count: 3
 }
