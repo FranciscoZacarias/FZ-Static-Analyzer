@@ -3,6 +3,8 @@ internal f32 f32_abs(f32 value) {
 }
 
 internal f32 f32_lerp(f32 start, f32 end, f32 amount) {
+  // TODO(fz): Frame rate dependent
+  // See Lerp Smoothing - Solving from an Ansatz
   f32 result = start + amount*(end - start);
   return result;
 }

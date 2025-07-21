@@ -1,9 +1,8 @@
 
-bugs:
-[ ] Single line comment node is skipping the first space after //
-[ ] Block comments are not storing the end block */
 
-fzsa:
+fz_sane:
+>> [ ] We need more granular ast_token_types in order to store spaces. We can't just say node_include_system because it doesn't store trivia. It would have to be something almost like 1:1 with tokens like [#] [include] [ ] [<] [stdio.h] [>], so 6 nodes instead of one. << 
+[ ] Replace ERROR_MESSAGE_AND_EXIT macro for actual Parser_Error
 [ ] Lexer is full of stuff that could be done with hash tables
 [ ] Tests for lexer
 
@@ -19,6 +18,7 @@ Static Analysis Features:
 [ ] No tabs
 [ ] Remove leading spaces
 [ ] Functions must be labeled as internal
+[ ] Make sure scratch arenas are cleared at the end of the scope
 
 fz_std:
-[ ] Macro to reallocate data into arenas
+[ ] Macro to reallocate data in arenas

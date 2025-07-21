@@ -1,4 +1,5 @@
 
+#define DEBUG 1
 #define PRINT_TOKENS 1
 #define FZ_ENABLE_ASSERT 1 
 #include "main.h"
@@ -45,6 +46,10 @@ void entry_point(Command_Line command_line) {
     Token_Array tokens = load_all_tokens(&lexer, path);
     
     Parser parser;
+#if DEBUG
+    parser.file = &lexer.file;
+#endif
+
     AST_Node* ast = parse_ast(&parser, tokens);
 
     printf("\n");

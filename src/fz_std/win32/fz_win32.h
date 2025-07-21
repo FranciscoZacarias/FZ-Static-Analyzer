@@ -77,6 +77,9 @@ internal b32          file_has_extension(String8 filename, String8 ext);
 internal u64          file_get_last_modified_time(String8 file_path);
 internal String8_List file_get_all_file_paths_recursively(Arena* arena, String8 path);
 
+internal b32 directory_create(String8 directory_path);
+internal b32 directory_exists(String8 directory_path);
+
 internal String8 path_new(Arena* arena, String8 path);
 internal b32     path_create_as_directory(String8 path);
 internal b32     path_is_file(String8 path);

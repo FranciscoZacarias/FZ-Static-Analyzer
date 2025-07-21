@@ -146,8 +146,10 @@ typedef enum AST_Node_Type {
 } AST_Node_Type;
 
 typedef struct AST_Node {
+  Arena* arena;
   struct AST_Node** children;
   u32 children_count;
+  u32 children_max;
   AST_Node_Type type;
   u32 start_offset;
   u32 end_offset;
@@ -164,7 +166,12 @@ typedef struct Parser_Error {
 
 typedef struct Parser {
   Arena* arena;
+  Arena* nodes_arena;
   AST_Node* root;
+
+#if DEBUG
+  File_Data* file;
+#endif
 
   Token_Array tokens;
   u64 index;
@@ -181,17 +188,21 @@ internal AST_Node* get_top_level_construct(Parser* parser);
 // Parser token modifying
 internal Token* peek_token(Parser* parser, u64 offset);
 internal Token* advance_token(Parser* parser);
-internal b32    match_token(Parser* parser, Token_Type type);
+internal Token* advance_token_skip_trivia(Parser* parser, AST_Node* parent);
 internal Token* assert_token(Parser* parser, Token_Type type);
 
 // Parser help
 internal AST_Node* parse_preprocessor(Parser* parser);
 internal void      parser_emit_error(Parser* parser, u32 start_offset, u32 end_offset, String8 message);
 
+// Token help
+internal b32 is_token_trivia(Token token);
+internal AST_Node_Type node_type_from_trivia_token(Token_Type type);
+
 // AST
 internal AST_Node* node_new(Arena* arena, u32 start_offset, u32 end_offset, AST_Node_Type type);
-internal void      node_add_child(Arena* arena, AST_Node* parent, AST_Node* child);
-internal AST_Node* make_binary(Arena* arena, AST_Node* parent, AST_Node* left, AST_Node* right);
+internal void      node_add_child(AST_Node* parent, AST_Node* child);
+internal AST_Node* make_binary(AST_Node* parent, AST_Node* left, AST_Node* right);
 
 internal void print_ast(Parser* parser, Lexer* lexer, b32 print_whitespace, b32 print_comments);
 internal void print_ast_node(Parser* parser, Lexer* lexer, AST_Node* node, u32 indent, b32 print_whitespace, b32 print_comments);

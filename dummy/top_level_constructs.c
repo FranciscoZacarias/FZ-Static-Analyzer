@@ -1,6 +1,7 @@
 // test.c
 
-#include <stdio.h>             // Preprocessor directive
+#include <stdio.h>             // System include
+# include "local_include.c"    // Local include
 #define PI 3.14                // Preprocessor macro
 
 _Static_assert(sizeof(int) == 4, "int must be 4 bytes");  // Static assert

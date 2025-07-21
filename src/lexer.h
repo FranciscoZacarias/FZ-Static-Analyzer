@@ -16,37 +16,31 @@ global const char* token_type_names[] = {
   "Token_Char_Literal",
 
   // Keywords
-  "Token_Keyword_Return",
-  "Token_Keyword_If",
-  "Token_Keyword_Else",
-  "Token_Keyword_While",
-  "Token_Keyword_For",
-  "Token_Keyword_Break",
-  "Token_Keyword_Continue",
-  "Token_Keyword_Struct",
-  "Token_Keyword_Union",
-  "Token_Keyword_Enum",
-  "Token_Keyword_Typedef",
-  "Token_Keyword_Static",
-  "Token_Keyword_Void",
-  "Token_Keyword_Int",
-  "Token_Keyword_Char",
-  "Token_Keyword_Float",
-  "Token_Keyword_Double",
-  "Token_Keyword_Unsigned",
-  "Token_Keyword_Signed",
-  "Token_Keyword_Const",
-  "Token_Keyword_Extern",
-  "Token_Keyword_Switch",
-  "Token_Keyword_Case",
-  "Token_Keyword_Default",
-  "Token_Keyword_Sizeof",
-  "Token_Keyword_Inline",
-  "Token_Keyword_Do",
-  "Token_Keyword_Goto",
-  "Token_Keyword_Restrict",
-  "Token_Keyword_Volatile",
-  "Token_Keyword_Register",
+  "Token_Return",
+  "Token_If",
+  "Token_Else",
+  "Token_While",
+  "Token_For",
+  "Token_Break",
+  "Token_Continue",
+  "Token_Struct",
+  "Token_Union",
+  "Token_Enum",
+  "Token_Typedef",
+  "Token_Static",
+  "Token_Void",
+  "Token_Const",
+  "Token_Extern",
+  "Token_Switch",
+  "Token_Case",
+  "Token_Default",
+  "Token_Sizeof",
+  "Token_Inline",
+  "Token_Do",
+  "Token_Goto",
+  "Token_Restrict",
+  "Token_Volatile",
+  "Token_Register",
 
   // Preprocessor
   "Token_Preprocessor_Hash", // #
@@ -141,12 +135,6 @@ typedef enum Token_Type {
   Token_Typedef,
   Token_Static,
   Token_Void,
-  Token_Int,
-  Token_Char,
-  Token_Float,
-  Token_Double,
-  Token_Unsigned,
-  Token_Signed,
   Token_Const,
   Token_Extern,
   Token_Switch,
@@ -239,7 +227,7 @@ typedef struct Token {
 
 typedef struct Token_Array {
   Token* tokens;
-  u64 count ;
+  u64 count;
 } Token_Array;
 #define TOKEN_ARRAY_SIZE 4096
 
@@ -262,6 +250,8 @@ typedef struct Lexer {
 
 Token_Array load_all_tokens(Lexer* lexer, String8 file_path); /* Initializes the lexer with workspace path */
 Token       next_token(Lexer* lexer);
+
+#define current_token(parser) (Token*)(&parser->tokens.tokens[parser->index])
 
 // Tokening
 Token token_from_whitespace(Lexer* lexer);

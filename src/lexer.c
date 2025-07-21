@@ -497,12 +497,6 @@ Token_Type is_token_keyword(Token identifier_token) {
   if (string8_equal(value, Str8("typedef")))   return Token_Typedef;
   if (string8_equal(value, Str8("static")))    return Token_Static;
   if (string8_equal(value, Str8("void")))      return Token_Void;
-  if (string8_equal(value, Str8("int")))       return Token_Int;
-  if (string8_equal(value, Str8("char")))      return Token_Char;
-  if (string8_equal(value, Str8("float")))     return Token_Float;
-  if (string8_equal(value, Str8("double")))    return Token_Double;
-  if (string8_equal(value, Str8("unsigned")))  return Token_Unsigned;
-  if (string8_equal(value, Str8("signed")))    return Token_Signed;
   if (string8_equal(value, Str8("const")))     return Token_Const;
   if (string8_equal(value, Str8("extern")))    return Token_Extern;
   if (string8_equal(value, Str8("switch")))    return Token_Switch;

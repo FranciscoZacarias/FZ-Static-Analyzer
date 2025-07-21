@@ -332,19 +332,30 @@ internal String8 path_dirname(String8 path) {
 internal b32 file_exists(String8 file_path) {
   b32 result = 0;
   Arena_Temp scratch = scratch_begin(0,0);
+  
   char8* cpath = cstring_from_string8(scratch.arena, file_path);
-  DWORD file_attributes = GetFileAttributesA(cpath);
-  if (file_attributes == INVALID_FILE_ATTRIBUTES) {
-    printf("File %s attributes are invalid.\n", cpath);
-  } else if (file_attributes & FILE_ATTRIBUTE_DIRECTORY) {
-    printf("Path %s is a directory.\n", cpath);
-  } else {
-    result = true;
-  }
+  DWORD attrib = GetFileAttributesA(cpath);
+  result = (attrib != INVALID_FILE_ATTRIBUTES && !(attrib & FILE_ATTRIBUTE_DIRECTORY));
+
   scratch_end(&scratch);
   return result;
 }
 
+internal b32 directory_create(String8 directory_path) {
+  b32 result = 0;
+  Arena_Temp scratch = scratch_begin(0,0);
+
+  char8* cpath = cstring_from_string8(scratch.arena, directory_path);
+  DWORD attrib = GetFileAttributesA(cpath);
+  return (attrib != INVALID_FILE_ATTRIBUTES && (attrib & FILE_ATTRIBUTE_DIRECTORY));
+
+  scratch_end(&scratch);
+  return result;
+}
+
+internal b32 directory_exists(String8 directory_path) {
+  // TODO(Fz): Unimplemented.
+}
 
 internal u32 file_overwrite(String8 file_path, char8* data, u64 data_size) {
   Arena_Temp scratch = scratch_begin(0, 0);
